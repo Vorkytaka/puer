@@ -73,12 +73,20 @@ base class FeatureBase<State, Msg, Effect>
     }
   }
 
+  /// Protected method to emit a transition.
+  ///
+  /// This should be used by subclasses instead of directly accessing the transition controller.
+  @protected
   void emitTransition({
     required State oldState,
     required Msg message,
     required State? newState,
     required List<Effect> effects,
-  }) =>
+  }) {
+    if (_isDisposed) {
+      throw StateError('Cannot emit transition after FeatureBase is disposed.');
+    }
+    if (!_transitionController.isClosed) {
       _transitionController.add(
         (
           stateBefore: oldState,
@@ -87,6 +95,8 @@ base class FeatureBase<State, Msg, Effect>
           effects: effects,
         ),
       );
+    }
+  }
 
   @override
   void accept(Msg message) {

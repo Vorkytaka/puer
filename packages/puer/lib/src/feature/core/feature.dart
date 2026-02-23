@@ -91,6 +91,33 @@ abstract interface class Feature<State, Msg, Effect> implements Disposable {
   /// This method will use Update function to handle changes and send result forward.
   void accept(Msg message);
 
+  /// A stream of transitions representing each state change step in the feature.
+  ///
+  /// Each time a message is processed via [accept], a [Transition] is emitted containing:
+  /// - The state before the message was processed
+  /// - The message itself
+  /// - The new state (or `null` if unchanged)
+  /// - Any effects produced
+  ///
+  /// This stream is useful for:
+  /// - Logging and debugging state changes
+  /// - Time-travel debugging (tracking the complete history)
+  /// - Analytics and monitoring
+  /// - Testing and verification
+  ///
+  /// **Note:** Transitions are emitted **before** effects are sent to effect handlers.
+  /// This means the transition contains the effects list, but the effects themselves
+  /// may not have been processed yet.
+  ///
+  /// ### Example:
+  /// ```dart
+  /// feature.transitions.listen((transition) {
+  ///   print('${transition.message} -> ${transition.stateAfter}');
+  ///   if (transition.effects.isNotEmpty) {
+  ///     print('Generated ${transition.effects.length} effects');
+  ///   }
+  /// });
+  /// ```
   Stream<Transition<State, Msg, Effect>> get transitions;
 
   /// Initializes the feature and prepares it for usage.
