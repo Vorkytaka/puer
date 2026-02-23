@@ -80,18 +80,22 @@ final class TimeTravelController implements Disposable {
   void register(String name, TimeTravelFeature feature) {
     _ensureServiceExtension();
 
-    _stateSubject.add(state.copyWith(
-      features: {
-        ...state.features,
-        name: feature,
-      },
-      stateSnapshots: [
-        ...state.stateSnapshots.map((snapshot) => {
+    _stateSubject.add(
+      state.copyWith(
+        features: {
+          ...state.features,
+          name: feature,
+        },
+        stateSnapshots: [
+          ...state.stateSnapshots.map(
+            (snapshot) => {
               ...snapshot,
               name: feature.state,
-            }),
-      ],
-    ));
+            },
+          ),
+        ],
+      ),
+    );
 
     if (state.timeline.isEmpty && state.features.length == 1) {
       _stopwatch.reset();
@@ -100,19 +104,21 @@ final class TimeTravelController implements Disposable {
   }
 
   void unregister(String name) {
-    _stateSubject.add(state.copyWith(
-      features: {
-        for (final featureName in state.features.keys)
-          if (name != featureName) featureName: state.features[featureName]!,
-      },
-      stateSnapshots: [
-        for (final snapshot in state.stateSnapshots)
-          {
-            for (final featureName in snapshot.keys)
-              if (name != featureName) featureName: snapshot[featureName],
-          }
-      ],
-    ));
+    _stateSubject.add(
+      state.copyWith(
+        features: {
+          for (final featureName in state.features.keys)
+            if (name != featureName) featureName: state.features[featureName]!,
+        },
+        stateSnapshots: [
+          for (final snapshot in state.stateSnapshots)
+            {
+              for (final featureName in snapshot.keys)
+                if (name != featureName) featureName: snapshot[featureName],
+            },
+        ],
+      ),
+    );
   }
 
   /// Records a message in the timeline.
@@ -141,19 +147,23 @@ final class TimeTravelController implements Disposable {
           featureName: state.features[featureName]!.state,
       };
 
-      _stateSubject.add(state.copyWith(
-        stateSnapshots: [
-          ...state.stateSnapshots,
-          states,
-        ],
-      ));
+      _stateSubject.add(
+        state.copyWith(
+          stateSnapshots: [
+            ...state.stateSnapshots,
+            states,
+          ],
+        ),
+      );
 
       // Trim timeline if it exceeds the limit
       if (timelineLimit != null && state.timeline.length > timelineLimit!) {
-        _stateSubject.add(state.copyWith(
-          timeline: state.timeline.sublist(snapshotAtEach),
-          stateSnapshots: state.stateSnapshots.sublist(1),
-        ));
+        _stateSubject.add(
+          state.copyWith(
+            timeline: state.timeline.sublist(snapshotAtEach),
+            stateSnapshots: state.stateSnapshots.sublist(1),
+          ),
+        );
       }
     }
   }
@@ -355,9 +365,11 @@ final class TimeTravelFeature<State, Message, Effect>
       _handleEffect(effect);
     }
 
-    await Future.wait(_effectHandlers
-        .whereType<Disposable>()
-        .map((disposable) => disposable.dispose()));
+    await Future.wait(
+      _effectHandlers
+          .whereType<Disposable>()
+          .map((disposable) => disposable.dispose()),
+    );
 
     await _effectSubscription?.cancel();
     await _stateSubject.close();
@@ -446,11 +458,13 @@ extension on TimeTravelStateV2 {
 
   Map<String, dynamic> toJson() => {
         'timeline': timeline
-            .map((e) => {
-                  'featureName': e.featureName,
-                  'message': e.message.toString(),
-                  'millisecondsSinceStart': e.millisecondsSinceStart,
-                })
+            .map(
+              (e) => {
+                'featureName': e.featureName,
+                'message': e.message.toString(),
+                'millisecondsSinceStart': e.millisecondsSinceStart,
+              },
+            )
             .toList(),
         'navigation': {
           'currentIndex': navigation.currentIndex,

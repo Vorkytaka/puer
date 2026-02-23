@@ -8,6 +8,7 @@ workspace:
   - packages/puer_flutter
   - packages/puer_time_travel
   - packages/puer_time_travel_devtools_extension
+  - packages/puer_lints
 
 dev_dependencies:
   melos: ^7.4.0

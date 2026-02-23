@@ -63,9 +63,11 @@ final class _FeatureImpl<State, Msg, Effect>
       _handleEffect(effect);
     }
 
-    await Future.wait(_effectHandlers
-        .whereType<Disposable>()
-        .map((disposable) => disposable.dispose()));
+    await Future.wait(
+      _effectHandlers
+          .whereType<Disposable>()
+          .map((disposable) => disposable.dispose()),
+    );
 
     await _effectSubscription?.cancel();
     await _stateSubject.close();

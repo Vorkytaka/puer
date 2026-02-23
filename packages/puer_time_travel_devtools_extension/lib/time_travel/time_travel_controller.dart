@@ -22,8 +22,9 @@ final class TimeTravelController {
 
   StreamSubscription? _stateChangedSubscription;
 
-  TimeTravelController({TimeTravelService? service})
-    : _service = service ?? TimeTravelService();
+  TimeTravelController({
+    TimeTravelService? service,
+  }) : _service = service ?? TimeTravelService();
 
   /// The current view state for the UI to observe.
   ValueListenable<TimeTravelViewState> get state => _state;

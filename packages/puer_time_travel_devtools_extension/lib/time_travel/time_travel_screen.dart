@@ -35,12 +35,12 @@ class _TimeTravelScreenState extends State<TimeTravelScreen> {
           ConnectionStatus.connecting => const _ConnectingView(),
           ConnectionStatus.unavailable => const _UnavailableView(),
           ConnectionStatus.error => _ErrorView(
-            message: viewState.errorMessage!,
-          ),
+              message: viewState.errorMessage!,
+            ),
           ConnectionStatus.connected => _ConnectedView(
-            snapshot: viewState.snapshot!,
-            controller: _controller,
-          ),
+              snapshot: viewState.snapshot!,
+              controller: _controller,
+            ),
         };
       },
     );

@@ -100,20 +100,20 @@ final class TimeTravelViewState {
   });
 
   const TimeTravelViewState.connecting()
-    : status = ConnectionStatus.connecting,
-      snapshot = null,
-      errorMessage = null;
+      : status = ConnectionStatus.connecting,
+        snapshot = null,
+        errorMessage = null;
 
   const TimeTravelViewState.unavailable()
-    : status = ConnectionStatus.unavailable,
-      snapshot = null,
-      errorMessage = null;
+      : status = ConnectionStatus.unavailable,
+        snapshot = null,
+        errorMessage = null;
 
   TimeTravelViewState.connected(TimeTravelSnapshot this.snapshot)
-    : status = ConnectionStatus.connected,
-      errorMessage = null;
+      : status = ConnectionStatus.connected,
+        errorMessage = null;
 
   TimeTravelViewState.withError(String this.errorMessage)
-    : status = ConnectionStatus.error,
-      snapshot = null;
+      : status = ConnectionStatus.error,
+        snapshot = null;
 }
