@@ -4,6 +4,9 @@ import 'dart:developer' as developer;
 
 import 'package:puer/feature.dart';
 
+// ignore: implementation_imports
+import 'package:puer/src/feature/core/feature_base.dart';
+
 final class TimeTravelController implements Disposable {
   static final global = TimeTravelController();
   static bool _globalServiceExtensionRegistered = false;
@@ -311,110 +314,56 @@ final class TimeTravelController implements Disposable {
 }
 
 final class TimeTravelFeature<State, Message, Effect>
-    implements Feature<State, Message, Effect> {
+    extends FeatureBase<State, Message, Effect> {
   final TimeTravelController _timeTravelController;
   final String name;
 
-  final Update<State, Message, Effect> _update;
-  final List<EffectHandler<Effect, Message>> _effectHandlers;
-
-  @override
-  final List<Effect> initialEffects;
-
-  @override
-  final List<Effect> disposableEffects;
-
-  final StateStream<State> _stateSubject;
-
   TimeTravelFeature({
     required this.name,
-    required State initialState,
-    required Update<State, Message, Effect> update,
-    required List<EffectHandler<Effect, Message>> effectHandlers,
-    List<Effect> initialEffects = const [],
-    List<Effect> disposableEffects = const [],
+    required super.initialState,
+    required super.update,
+    required super.effectHandlers,
+    super.initialEffects = const [],
+    super.disposableEffects = const [],
     TimeTravelController? controller,
   })  : _timeTravelController = controller ?? TimeTravelController.global,
-        _stateSubject = StateStream.seeded(initialState),
-        _update = update,
-        _effectHandlers = effectHandlers,
-        initialEffects = List.unmodifiable(initialEffects),
-        disposableEffects = List.unmodifiable(disposableEffects),
         assert(name.isNotEmpty);
-
-  final _effectsController = StreamController<Effect>.broadcast();
-  StreamSubscription? _effectSubscription;
 
   @override
   FutureOr<void> init() async {
     _timeTravelController.register(name, this);
-
-    for (final effect in initialEffects) {
-      _handleEffect(effect);
-    }
-
-    _listenForEffects();
+    return super.init();
   }
 
   @override
-  Future<void> dispose() async {
+  Future<void> dispose() {
     _timeTravelController.unregister(name);
-
-    for (final effect in disposableEffects) {
-      _handleEffect(effect);
-    }
-
-    await Future.wait(
-      _effectHandlers
-          .whereType<Disposable>()
-          .map((disposable) => disposable.dispose()),
-    );
-
-    await _effectSubscription?.cancel();
-    await _stateSubject.close();
-    await _effectsController.close();
+    return super.dispose();
   }
 
-  @override
-  State get state => _stateSubject.value;
-
-  @override
-  Stream<State> get stateStream => _stateSubject.stream;
-
+  /// Overrides accept to suppress effects during time travel mode.
+  ///
+  /// When time traveling is active, state updates are applied but effects
+  /// are not emitted. This prevents side effects during timeline navigation.
+  /// Messages are also not recorded to the timeline during time travel.
   @override
   void accept(Message message) {
-    final (newState, effects) = _update(state, message);
+    final (newState, effects) = update(state, message);
 
-    if (newState != null && _stateSubject.value != newState) {
-      _stateSubject.add(newState);
+    if (newState != null && state != newState) {
+      emitState(newState);
     }
 
     if (!_timeTravelController.isTimeTraveling) {
       if (effects.isNotEmpty) {
-        effects.forEach(_effectsController.add);
+        effects.forEach(emitEffect);
       }
 
       _timeTravelController._onMessage(name, message);
     }
   }
 
-  @override
-  Stream<Effect> get effects => _effectsController.stream;
-
-  void _listenForEffects() {
-    _effectSubscription = effects.listen(_handleEffect);
-  }
-
-  /// Send [effect] to each effect handler in this feature.
-  ///
-  /// This will not send effect to the handlers that was added as wrapper
-  void _handleEffect(Effect effect) {
-    for (final handler in _effectHandlers) {
-      handler(effect, accept);
-    }
-  }
-
-  void _processState(State state) => _stateSubject.add(state);
+  void _processState(State state) => emitState(state);
 }
 
 typedef TimeTravelNavigation = ({
