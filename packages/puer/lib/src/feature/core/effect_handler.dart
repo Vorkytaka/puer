@@ -1,4 +1,6 @@
-part of 'feature.dart';
+import 'dart:async';
+
+import 'package:meta/meta.dart';
 
 /// A function type for emitting messages within effect handlers.
 ///

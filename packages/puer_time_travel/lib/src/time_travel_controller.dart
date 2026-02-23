@@ -3,10 +3,11 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:puer/feature.dart';
+
 // ignore: implementation_imports
 import 'package:puer/src/feature/core/feature_base.dart';
 
-final class TimeTravelController implements Disposable {
+final class TimeTravelController {
   static final global = TimeTravelController();
   static bool _globalServiceExtensionRegistered = false;
 
@@ -45,7 +46,6 @@ final class TimeTravelController implements Disposable {
 
   TimeTravelStateV2 get state => _stateSubject.value;
 
-  @override
   Future<void> dispose() async {
     await _stateSubscription?.cancel();
     await _stateSubject.close();

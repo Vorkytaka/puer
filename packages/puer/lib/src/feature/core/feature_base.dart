@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 
+import 'disposable.dart';
+import 'effect_handler.dart';
 import 'feature.dart';
 import 'state_stream.dart';
 import 'transition.dart';
+import 'update.dart';
 
 base class FeatureBase<State, Msg, Effect>
     implements Feature<State, Msg, Effect> {

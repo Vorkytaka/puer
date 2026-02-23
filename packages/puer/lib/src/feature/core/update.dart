@@ -1,4 +1,4 @@
-part of 'feature.dart';
+import 'package:meta/meta.dart';
 
 /// Represents the result of handling a message with the update function.
 ///
@@ -38,19 +38,3 @@ typedef Update<State, Msg, Effect> = Next<State, Effect> Function(
   State state,
   Msg message,
 );
-
-/// Interface for implementing the update function.
-///
-/// Provides a callable structure for state updates, mirroring the functionality
-/// of the [Update] typedef with an object-oriented design. But you better does not use it.
-///
-/// - [State]: The type representing the feature's state.
-/// - [Msg]: The type representing messages that trigger state changes.
-/// - [Effect]: The type of side effects triggered during the update.
-@experimental
-abstract interface class IUpdate<State, Msg, Effect> {
-  /// Processes the current [state] and an incoming [message].
-  ///
-  /// Returns a [Next] object containing the new state (if any) and a list of effects to execute.
-  Next<State, Effect> call(State state, Msg message);
-}
