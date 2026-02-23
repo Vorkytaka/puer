@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:puer/feature.dart';
+import 'package:puer/puer.dart';
 import 'package:puer_test/puer_test.dart';
 import 'package:test/test.dart';
 

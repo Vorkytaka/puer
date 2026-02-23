@@ -3,7 +3,7 @@ import 'dart:isolate';
 
 import 'package:meta/meta.dart';
 
-import '../feature/core/effect_handler.dart';
+import 'package:puer/puer.dart';
 
 /// An [EffectHandler] implementation that processes effects in a separate isolate.
 ///

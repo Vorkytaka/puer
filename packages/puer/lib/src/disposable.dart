@@ -1,6 +1,7 @@
 import 'package:meta/meta.dart';
 
-import '../../../feature.dart';
+import 'effect_handler.dart';
+import 'feature.dart';
 
 /// Interface for resources that require cleanup.
 ///

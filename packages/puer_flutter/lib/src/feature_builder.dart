@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:puer/feature.dart';
+import 'package:puer/puer.dart';
 
 import 'feature_listener.dart';
 import 'feature_provider.dart';

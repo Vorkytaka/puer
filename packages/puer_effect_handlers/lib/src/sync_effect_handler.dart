@@ -1,6 +1,6 @@
 import 'package:meta/meta.dart';
 
-import '../feature/core/effect_handler.dart';
+import 'package:puer/puer.dart';
 
 /// A synchronous [EffectHandler] implementation for processing effects.
 ///

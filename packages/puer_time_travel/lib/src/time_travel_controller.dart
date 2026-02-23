@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
 
-import 'package:puer/feature.dart';
+import 'package:puer/puer.dart';
 
 // ignore: implementation_imports
-import 'package:puer/src/feature/core/feature_base.dart';
+import 'package:puer/src/feature_base.dart';
 
 final class TimeTravelController {
   static final global = TimeTravelController();

@@ -1,5 +1,5 @@
 import 'package:meta/meta.dart';
-import 'package:puer/feature.dart';
+import 'package:puer/puer.dart';
 import 'package:test/test.dart';
 
 /// A testing extension for [EffectHandler].

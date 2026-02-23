@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:puer/src/feature/core/state_stream.dart';
+import 'package:puer/src/state_stream.dart';
 import 'package:test/test.dart';
 
 void main() {

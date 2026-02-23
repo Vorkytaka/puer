@@ -2,9 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:meta/meta.dart';
-
-import '../feature/core/disposable.dart';
-import '../feature/core/effect_handler.dart';
+import 'package:puer/puer.dart';
 
 /// An [EffectHandler] implementation that ensures effects are handled sequentially.
 ///
@@ -78,4 +76,23 @@ final class SequentialEffectHandler<Effect, Msg>
   Future<void> dispose() async {
     _queue.clear();
   }
+}
+
+/// Extension methods for [EffectHandler] to add sequential processing.
+///
+/// This extension provides a convenient way to wrap an effect handler
+/// with sequential processing logic without manually creating a [SequentialEffectHandler].
+///
+/// Example:
+/// ```dart
+/// final handler = MyEffectHandler().sequential();
+/// ```
+extension SequentialEffectHandlerX<Effect, Message>
+    on EffectHandler<Effect, Message> {
+  /// Wraps this handler to process effects sequentially.
+  ///
+  /// Returns a new [SequentialEffectHandler] that ensures effects are processed
+  /// one at a time in the order they are received.
+  EffectHandler<Effect, Message> sequential() =>
+      SequentialEffectHandler(handler: this);
 }
