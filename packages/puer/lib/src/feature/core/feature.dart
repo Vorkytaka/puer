@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 
 import 'feature_base.dart';
+import 'transition.dart';
 
 part 'disposable.dart';
 
@@ -89,6 +90,8 @@ abstract interface class Feature<State, Msg, Effect> implements Disposable {
   /// Invoked to handle messages that may trigger state updates or effects.
   /// This method will use Update function to handle changes and send result forward.
   void accept(Msg message);
+
+  Stream<Transition<State, Msg, Effect>> get transitions;
 
   /// Initializes the feature and prepares it for usage.
   ///
