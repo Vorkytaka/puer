@@ -18,13 +18,13 @@ final class _FeatureImpl<State, Msg, Effect>
     required List<EffectHandler<Effect, Msg>> effectHandlers,
     List<Effect> initialEffects = const [],
     List<Effect> disposableEffects = const [],
-  })  : _stateSubject = BehaviorSubject.seeded(initialState),
+  })  : _stateSubject = StateStream.seeded(initialState),
         _update = update,
         _effectHandlers = List.unmodifiable(effectHandlers),
         initialEffects = List.unmodifiable(initialEffects),
         disposableEffects = List.unmodifiable(disposableEffects);
 
-  final BehaviorSubject<State> _stateSubject;
+  final StateStream<State> _stateSubject;
   final _effectsController = StreamController<Effect>.broadcast();
   StreamSubscription? _effectSubscription;
 

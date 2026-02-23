@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:rxdart/rxdart.dart';
 
 import '../core/feature.dart';
 import 'proxy_feature.dart';
@@ -48,8 +47,10 @@ final class FeatureEffectWrapper<State, Msg, Effect, E extends Effect>
   /// - Processing any [initialEffects] of type [E].
   @override
   FutureOr<void> init() {
-    _subscription =
-        effects.whereType<E>().listen((effect) => handler(effect, accept));
+    _subscription = effects
+        .where((e) => e is E)
+        .cast<E>()
+        .listen((effect) => handler(effect, accept));
 
     for (final effect in initialEffects) {
       if (effect is E) {
