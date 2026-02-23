@@ -3,7 +3,8 @@ import 'dart:collection';
 
 import 'package:meta/meta.dart';
 
-import '../../feature.dart';
+import '../feature/core/disposable.dart';
+import '../feature/core/effect_handler.dart';
 
 /// An [EffectHandler] implementation that ensures effects are handled sequentially.
 ///

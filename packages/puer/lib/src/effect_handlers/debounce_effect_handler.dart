@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 
-import '../feature/core/feature.dart';
+import '../feature/core/disposable.dart';
+import '../feature/core/effect_handler.dart';
 
 /// An [EffectHandler] implementation that adds a debounce mechanism to effect handling.
 ///

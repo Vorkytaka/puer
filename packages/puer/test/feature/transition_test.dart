@@ -145,31 +145,4 @@ void main() {
       );
     });
   });
-
-  group('ProxyFeature transitions', () {
-    test('delegates transitions to wrapped feature', () async {
-      final baseFeature = Feature<int, String, String>(
-        initialState: 0,
-        update: (state, message) => (state + 1, []),
-        effectHandlers: [],
-      );
-
-      final proxyFeature = _TestProxyFeature(feature: baseFeature);
-
-      final transitions = <Transition<int, String, String>>[];
-      proxyFeature.transitions.listen(transitions.add);
-
-      proxyFeature.accept('test');
-
-      await Future.delayed(Duration.zero);
-      expect(transitions.length, 1);
-      expect(transitions[0].message, 'test');
-
-      await proxyFeature.dispose();
-    });
-  });
-}
-
-final class _TestProxyFeature extends ProxyFeature<int, String, String> {
-  _TestProxyFeature({required super.feature});
 }

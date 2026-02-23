@@ -1,4 +1,6 @@
-part of 'feature.dart';
+import 'package:meta/meta.dart';
+
+import '../../../feature.dart';
 
 /// Interface for resources that require cleanup.
 ///
