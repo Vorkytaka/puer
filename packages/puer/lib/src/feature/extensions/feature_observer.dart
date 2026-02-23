@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:rxdart/rxdart.dart';
 
 import '../core/feature.dart';
 import 'proxy_feature.dart';
@@ -97,7 +96,8 @@ final class FeatureObserverWrapper<State, Msg, Effect>
   final OnMsg<Msg>? _onMsg;
   final OnEffect<Effect>? _onEffect;
 
-  final _subscription = CompositeSubscription();
+  StreamSubscription? _stateSub;
+  StreamSubscription? _effectSub;
 
   /// Creates a new [FeatureObserverWrapper].
   ///
@@ -126,16 +126,17 @@ final class FeatureObserverWrapper<State, Msg, Effect>
   @override
   FutureOr<void> init() {
     _onInit?.call();
-    stateStream.listen(_onState).addTo(_subscription);
-    effects.listen(_onEffect).addTo(_subscription);
+    _stateSub = stateStream.listen(_onState);
+    _effectSub = effects.listen(_onEffect);
     return super.init();
   }
 
   /// Disposes the feature and cleans up subscriptions.
   @override
-  Future<void> dispose() {
+  Future<void> dispose() async {
     _onDispose?.call();
-    _subscription.dispose();
+    await _stateSub?.cancel();
+    await _effectSub?.cancel();
     return super.dispose();
   }
 }

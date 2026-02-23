@@ -1,11 +1,15 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:rxdart/rxdart.dart';
+
+import 'state_stream.dart';
 
 part 'disposable.dart';
+
 part 'effect_handler.dart';
+
 part 'feature_impl.dart';
+
 part 'update.dart';
 
 /// Core interface for building features.

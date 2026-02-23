@@ -4,7 +4,6 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:provider/provider.dart';
 import 'package:puer/feature.dart';
-import 'package:rxdart/rxdart.dart';
 
 import 'feature_listener.dart';
 
@@ -105,7 +104,10 @@ class _FeatureEffectListener<F extends Feature<dynamic, dynamic, E>, E,
   }
 
   void _subscribe() {
-    _subscription = _feature.effects.whereType<Effect>().listen((news) {
+    _subscription = _feature.effects
+        .where((e) => e is Effect)
+        .cast<Effect>()
+        .listen((news) {
       if (mounted) {
         widget.listener(context, news);
       }

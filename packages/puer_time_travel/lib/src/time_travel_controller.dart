@@ -3,13 +3,12 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:puer/feature.dart';
-import 'package:rxdart/rxdart.dart';
 
 final class TimeTravelController implements Disposable {
   static final global = TimeTravelController();
   static bool _globalServiceExtensionRegistered = false;
 
-  final _stateSubject = BehaviorSubject.seeded(_initialTimeTravelState);
+  final _stateSubject = StateStream.seeded(_initialTimeTravelState);
   final _stopwatch = Stopwatch();
 
   /// Take a full state snapshot after every [snapshotAtEach] timeline events.
@@ -325,7 +324,7 @@ final class TimeTravelFeature<State, Message, Effect>
   @override
   final List<Effect> disposableEffects;
 
-  final BehaviorSubject<State> _stateSubject;
+  final StateStream<State> _stateSubject;
 
   TimeTravelFeature({
     required this.name,
@@ -336,7 +335,7 @@ final class TimeTravelFeature<State, Message, Effect>
     List<Effect> disposableEffects = const [],
     TimeTravelController? controller,
   })  : _timeTravelController = controller ?? TimeTravelController.global,
-        _stateSubject = BehaviorSubject.seeded(initialState),
+        _stateSubject = StateStream.seeded(initialState),
         _update = update,
         _effectHandlers = effectHandlers,
         initialEffects = List.unmodifiable(initialEffects),
