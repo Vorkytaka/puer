@@ -1,6 +1,6 @@
 import 'package:meta/meta.dart';
 
-import '../feature/core/effect_handler.dart';
+import 'package:puer/puer.dart';
 
 /// An [EffectHandler] implementation for handling effects asynchronously.
 ///

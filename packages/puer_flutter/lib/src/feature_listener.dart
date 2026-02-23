@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:provider/provider.dart';
-import 'package:puer/feature.dart';
+import 'package:puer/puer.dart';
 
 /// A callback that is invoked whenever the state of the associated [Feature] changes.
 ///

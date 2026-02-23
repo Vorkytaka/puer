@@ -1,9 +1,7 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-
-import '../feature/core/disposable.dart';
-import '../feature/core/effect_handler.dart';
+import 'package:puer/puer.dart';
 
 /// An [EffectHandler] implementation that adds a debounce mechanism to effect handling.
 ///
@@ -82,4 +80,28 @@ final class DebounceEffectHandler<Effect, Msg>
     _timer?.cancel();
     _timer = null;
   }
+}
+
+/// Extension methods for [EffectHandler] to add debouncing functionality.
+///
+/// This extension provides a convenient way to wrap an effect handler
+/// with debounce logic without manually creating a [DebounceEffectHandler].
+///
+/// Example:
+/// ```dart
+/// final handler = MyEffectHandler().debounced(Duration(milliseconds: 300));
+/// ```
+extension DebounceEffectHandlerX<Effect, Message>
+    on EffectHandler<Effect, Message> {
+  /// Wraps this handler with a debounce mechanism.
+  ///
+  /// Returns a new [DebounceEffectHandler] that will delay processing effects
+  /// until [duration] has elapsed since the last effect invocation.
+  ///
+  /// - [duration]: The debounce interval.
+  EffectHandler<Effect, Message> debounced(Duration duration) =>
+      DebounceEffectHandler(
+        duration: duration,
+        handler: this,
+      );
 }

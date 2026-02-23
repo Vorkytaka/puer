@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:provider/provider.dart';
-import 'package:puer/feature.dart';
+import 'package:puer/puer.dart';
 
 /// A typedef representing a factory function to create a [Feature] instance.
 ///

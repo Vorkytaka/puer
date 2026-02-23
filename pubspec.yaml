@@ -4,6 +4,7 @@ environment:
   sdk: ^3.6.0
 workspace:
   - packages/puer
+  - packages/puer_effect_handlers
   - packages/puer_test
   - packages/puer_flutter
   - packages/puer_time_travel

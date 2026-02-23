@@ -2,8 +2,11 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 
-import '../../../feature.dart';
+import 'disposable.dart';
+import 'effect_handler.dart';
 import 'feature_base.dart';
+import 'transition.dart';
+import 'update.dart';
 
 /// Core interface for building features.
 ///
