@@ -35,6 +35,10 @@ final class StateStream<T> {
   /// The [value] is stored and emitted to all active listeners.
   /// This also updates the current [value] returned by the getter.
   void add(T value) {
+    if (_controller.isClosed) {
+      throw StateError('Cannot add event after StateStream is closed.');
+    }
+
     _value = value;
     _controller.add(value);
   }
@@ -90,9 +94,19 @@ class _StateStream<T> extends Stream<T> {
 
     subscription.onData(onData);
 
-    // Deliver the current value synchronously before returning.
-    onData?.call(_subject._value);
-
+    // Guard against exceptions to avoid leaking the subscription and to
+    // report errors via the current Zone like normal stream events.
+    if (onData != null) {
+      try {
+        onData(_subject._value);
+      } on Object catch (error, stackTrace) {
+        // Cancel the subscription to avoid a leak, then report the error
+        // using the current Zone's uncaught error handler.
+        // See https://github.com/Vorkytaka/puer/pull/7#discussion_r2842305393
+        subscription.cancel();
+        Zone.current.handleUncaughtError(error, stackTrace);
+      }
+    }
     return subscription;
   }
 }
