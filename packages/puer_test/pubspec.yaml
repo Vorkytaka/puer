@@ -1,0 +1,26 @@
+name: puer_test
+description: A package to make feature testing in puer easier and more enjoyable.
+version: 1.0.0-alpha.1
+
+repository: https://github.com/Vorkytaka/puer
+issue_tracker: https://github.com/Vorkytaka/puer/issues
+homepage: https://github.com/Vorkytaka/puer
+topics:
+  - state-management
+  - architecture
+  - unidirectional-data-flow
+  - mvi
+  - tea
+  - puer
+
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+
+dependencies:
+  meta: ^1.0.0
+  puer: ^1.0.0-alpha.1
+  test: ^1.16.0
+
+dev_dependencies:
+  lints: ^6.0.0
