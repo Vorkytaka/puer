@@ -4,6 +4,7 @@ import 'package:meta/meta.dart';
 
 import 'feature.dart';
 import 'state_stream.dart';
+import 'transition.dart';
 
 base class FeatureBase<State, Msg, Effect>
     implements Feature<State, Msg, Effect> {
@@ -16,6 +17,8 @@ base class FeatureBase<State, Msg, Effect>
   final StateStream<State> _stateSubject;
 
   final _effectsController = StreamController<Effect>.broadcast();
+  final _transitionController =
+      StreamController<Transition<State, Msg, Effect>>.broadcast();
 
   @override
   final List<Effect> initialEffects;
@@ -70,20 +73,56 @@ base class FeatureBase<State, Msg, Effect>
     }
   }
 
+  /// Protected method to emit a transition.
+  ///
+  /// This should be used by subclasses instead of directly accessing the transition controller.
+  @protected
+  void emitTransition({
+    required State oldState,
+    required Msg message,
+    required State? newState,
+    required List<Effect> effects,
+  }) {
+    if (_isDisposed) {
+      throw StateError('Cannot emit transition after FeatureBase is disposed.');
+    }
+    if (!_transitionController.isClosed) {
+      _transitionController.add(
+        (
+          stateBefore: oldState,
+          message: message,
+          stateAfter: newState,
+          effects: effects,
+        ),
+      );
+    }
+  }
+
   @override
   void accept(Msg message) {
     if (_isDisposed) {
       throw StateError('Cannot accept message after FeatureBase is disposed.');
     }
 
+    final oldState = state;
     final (newState, effects) = update(_stateSubject.value, message);
     if (newState != null && _stateSubject.value != newState) {
       emitState(newState);
     }
+    emitTransition(
+      oldState: oldState,
+      message: message,
+      newState: newState,
+      effects: effects,
+    );
     if (effects.isNotEmpty) {
       effects.forEach(emitEffect);
     }
   }
+
+  @override
+  Stream<Transition<State, Msg, Effect>> get transitions =>
+      _transitionController.stream;
 
   @override
   void init() {
@@ -118,6 +157,7 @@ base class FeatureBase<State, Msg, Effect>
 
     await _stateSubject.close();
     await _effectsController.close();
+    await _transitionController.close();
   }
 
   void _listenForEffects() {

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 
 import 'package:puer/feature.dart';
-
 // ignore: implementation_imports
 import 'package:puer/src/feature/core/feature_base.dart';
 
@@ -348,6 +347,7 @@ final class TimeTravelFeature<State, Message, Effect>
   /// Messages are also not recorded to the timeline during time travel.
   @override
   void accept(Message message) {
+    final oldState = state;
     final (newState, effects) = update(state, message);
 
     if (newState != null && state != newState) {
@@ -355,6 +355,13 @@ final class TimeTravelFeature<State, Message, Effect>
     }
 
     if (!_timeTravelController.isTimeTraveling) {
+      emitTransition(
+        oldState: oldState,
+        message: message,
+        newState: newState,
+        effects: effects,
+      );
+
       if (effects.isNotEmpty) {
         effects.forEach(emitEffect);
       }

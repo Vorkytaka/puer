@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 
 import '../core/feature.dart';
+import '../core/transition.dart';
 
 /// A base class for creating proxy implementations of [Feature].
 ///
@@ -59,4 +60,8 @@ abstract base class ProxyFeature<State, Msg, Effect>
   /// Delegates state stream access to the wrapped [feature].
   @override
   Stream<State> get stateStream => feature.stateStream;
+
+  /// Delegates transition stream to the wrapped [feature].
+  @override
+  Stream<Transition<State, Msg, Effect>> get transitions => feature.transitions;
 }
