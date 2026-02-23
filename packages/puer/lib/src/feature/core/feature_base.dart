@@ -1,10 +1,22 @@
-part of 'feature.dart';
+import 'dart:async';
 
-@experimental
-final class _FeatureImpl<State, Msg, Effect>
+import 'package:meta/meta.dart';
+
+import '../../../feature.dart';
+
+base class FeatureBase<State, Msg, Effect>
     implements Feature<State, Msg, Effect> {
-  final Update<State, Msg, Effect> _update;
-  final List<EffectHandler<Effect, Msg>> _effectHandlers;
+  @protected
+  final Update<State, Msg, Effect> update;
+
+  @protected
+  final List<EffectHandler<Effect, Msg>> effectHandlers;
+
+  @protected
+  final StateStream<State> stateSubject;
+
+  @protected
+  final effectsController = StreamController<Effect>.broadcast();
 
   @override
   final List<Effect> initialEffects;
@@ -12,39 +24,36 @@ final class _FeatureImpl<State, Msg, Effect>
   @override
   final List<Effect> disposableEffects;
 
-  _FeatureImpl({
+  FeatureBase({
     required State initialState,
-    required Update<State, Msg, Effect> update,
+    required this.update,
     required List<EffectHandler<Effect, Msg>> effectHandlers,
     List<Effect> initialEffects = const [],
     List<Effect> disposableEffects = const [],
-  })  : _stateSubject = StateStream.seeded(initialState),
-        _update = update,
-        _effectHandlers = List.unmodifiable(effectHandlers),
+  })  : stateSubject = StateStream.seeded(initialState),
+        effectHandlers = List.unmodifiable(effectHandlers),
         initialEffects = List.unmodifiable(initialEffects),
         disposableEffects = List.unmodifiable(disposableEffects);
 
-  final StateStream<State> _stateSubject;
-  final _effectsController = StreamController<Effect>.broadcast();
   StreamSubscription? _effectSubscription;
 
   @override
-  Stream<State> get stateStream => _stateSubject.stream;
+  Stream<State> get stateStream => stateSubject.stream;
 
   @override
-  State get state => _stateSubject.value;
+  State get state => stateSubject.value;
 
   @override
-  Stream<Effect> get effects => _effectsController.stream;
+  Stream<Effect> get effects => effectsController.stream;
 
   @override
   void accept(Msg message) {
-    final (newState, effects) = _update(_stateSubject.value, message);
-    if (newState != null && _stateSubject.value != newState) {
-      _stateSubject.add(newState);
+    final (newState, effects) = update(stateSubject.value, message);
+    if (newState != null && stateSubject.value != newState) {
+      stateSubject.add(newState);
     }
     if (effects.isNotEmpty) {
-      effects.forEach(_effectsController.add);
+      effects.forEach(effectsController.add);
     }
   }
 
@@ -64,14 +73,14 @@ final class _FeatureImpl<State, Msg, Effect>
     }
 
     await Future.wait(
-      _effectHandlers
+      effectHandlers
           .whereType<Disposable>()
           .map((disposable) => disposable.dispose()),
     );
 
     await _effectSubscription?.cancel();
-    await _stateSubject.close();
-    await _effectsController.close();
+    await stateSubject.close();
+    await effectsController.close();
   }
 
   void _listenForEffects() {
@@ -82,7 +91,7 @@ final class _FeatureImpl<State, Msg, Effect>
   ///
   /// This will not send effect to the handlers that was added as wrapper
   void _handleEffect(Effect effect) {
-    for (final handler in _effectHandlers) {
+    for (final handler in effectHandlers) {
       handler(effect, accept);
     }
   }

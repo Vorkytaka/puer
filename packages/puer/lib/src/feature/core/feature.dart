@@ -2,13 +2,11 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 
-import 'state_stream.dart';
+import 'feature_base.dart';
 
 part 'disposable.dart';
 
 part 'effect_handler.dart';
-
-part 'feature_impl.dart';
 
 part 'update.dart';
 
@@ -51,7 +49,7 @@ abstract interface class Feature<State, Msg, Effect> implements Disposable {
     List<Effect> initialEffects = const [],
     List<Effect> disposableEffects = const [],
   }) =>
-      _FeatureImpl(
+      FeatureBase(
         initialState: initialState,
         update: update,
         effectHandlers: effectHandlers,
