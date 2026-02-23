@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:meta/meta.dart';
 
-import '../../../feature.dart';
+import 'feature.dart';
+import 'state_stream.dart';
 
 base class FeatureBase<State, Msg, Effect>
     implements Feature<State, Msg, Effect> {
@@ -12,11 +13,9 @@ base class FeatureBase<State, Msg, Effect>
   @protected
   final List<EffectHandler<Effect, Msg>> effectHandlers;
 
-  @protected
-  final StateStream<State> stateSubject;
+  final StateStream<State> _stateSubject;
 
-  @protected
-  final effectsController = StreamController<Effect>.broadcast();
+  final _effectsController = StreamController<Effect>.broadcast();
 
   @override
   final List<Effect> initialEffects;
@@ -30,35 +29,66 @@ base class FeatureBase<State, Msg, Effect>
     required List<EffectHandler<Effect, Msg>> effectHandlers,
     List<Effect> initialEffects = const [],
     List<Effect> disposableEffects = const [],
-  })  : stateSubject = StateStream.seeded(initialState),
+  })  : _stateSubject = StateStream.seeded(initialState),
         effectHandlers = List.unmodifiable(effectHandlers),
         initialEffects = List.unmodifiable(initialEffects),
         disposableEffects = List.unmodifiable(disposableEffects);
 
   StreamSubscription? _effectSubscription;
+  bool _isDisposed = false;
 
   @override
-  Stream<State> get stateStream => stateSubject.stream;
+  Stream<State> get stateStream => _stateSubject.stream;
 
   @override
-  State get state => stateSubject.value;
+  State get state => _stateSubject.value;
 
   @override
-  Stream<Effect> get effects => effectsController.stream;
+  Stream<Effect> get effects => _effectsController.stream;
+
+  /// Protected method to emit a new state.
+  ///
+  /// This should be used by subclasses instead of directly accessing the state stream.
+  @protected
+  void emitState(State state) {
+    if (_isDisposed) {
+      throw StateError('Cannot emit state after FeatureBase is disposed.');
+    }
+    _stateSubject.add(state);
+  }
+
+  /// Protected method to emit an effect.
+  ///
+  /// This should be used by subclasses instead of directly accessing the effects controller.
+  @protected
+  void emitEffect(Effect effect) {
+    if (_isDisposed) {
+      throw StateError('Cannot emit effect after FeatureBase is disposed.');
+    }
+    if (!_effectsController.isClosed) {
+      _effectsController.add(effect);
+    }
+  }
 
   @override
   void accept(Msg message) {
-    final (newState, effects) = update(stateSubject.value, message);
-    if (newState != null && stateSubject.value != newState) {
-      stateSubject.add(newState);
+    if (_isDisposed) {
+      throw StateError('Cannot accept message after FeatureBase is disposed.');
+    }
+
+    final (newState, effects) = update(_stateSubject.value, message);
+    if (newState != null && _stateSubject.value != newState) {
+      emitState(newState);
     }
     if (effects.isNotEmpty) {
-      effects.forEach(effectsController.add);
+      effects.forEach(emitEffect);
     }
   }
 
   @override
   void init() {
+    assert(_effectSubscription == null, 'init() called multiple times');
+
     for (final effect in initialEffects) {
       _handleEffect(effect);
     }
@@ -68,6 +98,14 @@ base class FeatureBase<State, Msg, Effect>
 
   @override
   Future<void> dispose() async {
+    if (_isDisposed) {
+      return;
+    }
+    _isDisposed = true;
+
+    // Cancel subscription first to prevent race conditions
+    await _effectSubscription?.cancel();
+
     for (final effect in disposableEffects) {
       _handleEffect(effect);
     }
@@ -78,9 +116,8 @@ base class FeatureBase<State, Msg, Effect>
           .map((disposable) => disposable.dispose()),
     );
 
-    await _effectSubscription?.cancel();
-    await stateSubject.close();
-    await effectsController.close();
+    await _stateSubject.close();
+    await _effectsController.close();
   }
 
   void _listenForEffects() {

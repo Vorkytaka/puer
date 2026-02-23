@@ -4,6 +4,9 @@ import 'dart:developer' as developer;
 
 import 'package:puer/feature.dart';
 
+// ignore: implementation_imports
+import 'package:puer/src/feature/core/feature_base.dart';
+
 final class TimeTravelController implements Disposable {
   static final global = TimeTravelController();
   static bool _globalServiceExtensionRegistered = false;
@@ -333,29 +336,34 @@ final class TimeTravelFeature<State, Message, Effect>
   }
 
   @override
-  Future<void> dispose() async {
+  Future<void> dispose() {
     _timeTravelController.unregister(name);
     return super.dispose();
   }
 
+  /// Overrides accept to suppress effects during time travel mode.
+  ///
+  /// When time traveling is active, state updates are applied but effects
+  /// are not emitted. This prevents side effects during timeline navigation.
+  /// Messages are also not recorded to the timeline during time travel.
   @override
   void accept(Message message) {
     final (newState, effects) = update(state, message);
 
-    if (newState != null && stateSubject.value != newState) {
-      stateSubject.add(newState);
+    if (newState != null && state != newState) {
+      emitState(newState);
     }
 
     if (!_timeTravelController.isTimeTraveling) {
       if (effects.isNotEmpty) {
-        effects.forEach(effectsController.add);
+        effects.forEach(emitEffect);
       }
 
       _timeTravelController._onMessage(name, message);
     }
   }
 
-  void _processState(State state) => stateSubject.add(state);
+  void _processState(State state) => emitState(state);
 }
 
 typedef TimeTravelNavigation = ({
