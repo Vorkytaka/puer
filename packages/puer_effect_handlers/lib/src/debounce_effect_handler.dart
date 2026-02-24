@@ -91,7 +91,7 @@ final class DebounceEffectHandler<Effect, Msg>
 /// ```dart
 /// final handler = MyEffectHandler().debounced(Duration(milliseconds: 300));
 /// ```
-extension DebounceEffectHandlerX<Effect, Message>
+extension DebounceEffectHandlerExt<Effect, Message>
     on EffectHandler<Effect, Message> {
   /// Wraps this handler with a debounce mechanism.
   ///

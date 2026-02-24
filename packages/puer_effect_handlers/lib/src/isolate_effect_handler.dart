@@ -2,8 +2,29 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:meta/meta.dart';
-
 import 'package:puer/puer.dart';
+
+/// Extension methods for [EffectHandler] to add isolate support.
+///
+/// Provides convenient methods to wrap an existing [EffectHandler] with
+/// isolate-based execution capabilities.
+extension IsolateEffectHandlerExt<Effect, Msg> on EffectHandler<Effect, Msg> {
+  /// Wraps this [EffectHandler] to run in a separate isolate.
+  ///
+  /// Returns a new [IsolateEffectHandler] that will execute this handler's
+  /// logic in a separate isolate, allowing computationally expensive or
+  /// blocking tasks to run without affecting the main thread.
+  ///
+  /// Example:
+  /// ```dart
+  /// final handler = MyEffectHandler().isolate();
+  /// ```
+  ///
+  /// See also:
+  /// - [IsolateEffectHandler] for more details on isolate-based execution.
+  EffectHandler<Effect, Msg> isolated() =>
+      IsolateEffectHandler(effectHandler: this);
+}
 
 /// An [EffectHandler] implementation that processes effects in a separate isolate.
 ///
@@ -15,36 +36,48 @@ import 'package:puer/puer.dart';
 /// ### Key Features:
 /// - **Isolate-based execution**: Effects are processed in an independent isolate.
 /// - **Message emission**: Allows the handler to emit messages back to the main isolate.
-/// - **Encapsulation**: Abstracts away the complexity of managing isolates.
+/// - **Composition over inheritance**: Wraps any existing [EffectHandler] instance.
 ///
 /// Example:
 /// ```dart
-/// final class MyEffectHandler extends IsolateEffectHandler<MyEffect, MyMsg> {
-///   @override
-///   Future<void> handle(MyEffect effect, MsgEmitter<MyMsg> emit) async {
-///     // Perform expensive work here
-///     final result = await performHeavyComputation(effect.data);
-///     emit(MyMsg(result));
-///   }
-/// }
+/// // Using the extension method (recommended)
+/// final handler = myEffectHandler.isolate();
+///
+/// // Or using the constructor directly
+/// final handler = IsolateEffectHandler(
+///   effectHandler: myEffectHandler,
+/// );
 /// ```
 ///
 /// ### Note:
 /// - Each effect is processed in its own isolate, which is spawned and terminated automatically.
 /// - Because of how isolate works you should be careful, not all object can be send. See [SendPort] docs.
 @experimental
-abstract base class IsolateEffectHandler<Effect, Msg>
+final class IsolateEffectHandler<Effect, Msg>
     implements EffectHandler<Effect, Msg> {
-  /// Creates an [IsolateEffectHandler].
-  const IsolateEffectHandler();
+  /// The underlying effect handler that will be executed in an isolate.
+  final EffectHandler<Effect, Msg> _effectHandler;
 
-  /// Defines the logic for processing the effect within the isolate.
+  /// Creates an [IsolateEffectHandler] that wraps the given [effectHandler].
   ///
-  /// - [effect]: The effect to be processed.
-  /// - [emit]: A function to emit messages back to the main isolate.
+  /// The [effectHandler] will be executed in a separate isolate when effects
+  /// are processed, allowing heavy computations to run without blocking the
+  /// main thread.
   ///
-  /// Subclasses must override this method with their effect handling logic.
-  FutureOr<void> handle(Effect effect, MsgEmitter<Msg> emit);
+  /// Example:
+  /// ```dart
+  /// final handler = IsolateEffectHandler(
+  ///   effectHandler: myEffectHandler,
+  /// );
+  /// ```
+  ///
+  /// Or using the extension method:
+  /// ```dart
+  /// final handler = myEffectHandler.isolate();
+  /// ```
+  IsolateEffectHandler({
+    required EffectHandler<Effect, Msg> effectHandler,
+  }) : _effectHandler = effectHandler;
 
   /// Processes the given effect in a separate isolate.
   ///
@@ -61,7 +94,7 @@ abstract base class IsolateEffectHandler<Effect, Msg>
 
     final isolate = await Isolate.spawn(
       _runInIsolate<Effect, Msg>,
-      _IsolateParams(effect, receivePort.sendPort, handle),
+      _IsolateParams(effect, receivePort.sendPort, _effectHandler.call),
     );
 
     await for (final message in receivePort) {
