@@ -87,7 +87,7 @@ final class SequentialEffectHandler<Effect, Msg>
 /// ```dart
 /// final handler = MyEffectHandler().sequential();
 /// ```
-extension SequentialEffectHandlerX<Effect, Message>
+extension SequentialEffectHandlerExt<Effect, Message>
     on EffectHandler<Effect, Message> {
   /// Wraps this handler to process effects sequentially.
   ///
