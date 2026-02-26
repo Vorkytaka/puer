@@ -8,7 +8,8 @@ import 'package:puer/puer.dart';
 ///
 /// Provides convenient methods to wrap an existing [EffectHandler] with
 /// isolate-based execution capabilities.
-extension IsolateEffectHandlerExt<Effect, Message> on EffectHandler<Effect, Message> {
+extension IsolateEffectHandlerExt<Effect, Message>
+    on EffectHandler<Effect, Message> {
   /// Wraps this [EffectHandler] to run in a separate isolate.
   ///
   /// Returns a new [IsolateEffectHandler] that will execute this handler's
