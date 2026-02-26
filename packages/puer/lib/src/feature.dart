@@ -14,7 +14,7 @@ import 'update.dart';
 ///
 /// This interface encapsulates the primary elements of a feature:
 /// - [State]: Represents the feature's current state.
-/// - [Msg]: Defines messages or events that may alter the state.
+/// - [Message]: Defines messages or events that may alter the state.
 /// - [Effect]: Represents side effects triggered by messages but do not modify state directly.
 ///
 /// Due to its generic nature, this interface may appear complex. To simplify usage,
@@ -30,7 +30,7 @@ import 'update.dart';
 ///     );
 /// ```
 @experimental
-abstract interface class Feature<State, Msg, Effect> implements Disposable {
+abstract interface class Feature<State, Message, Effect> implements Disposable {
   /// Creates a new `Feature` instance.
   ///
   /// - [initialState]: The initial state of the feature, defining its starting condition.
@@ -42,8 +42,8 @@ abstract interface class Feature<State, Msg, Effect> implements Disposable {
   /// - [disposableEffects]: Optional list of effects to manage resources during the feature's lifecycle.
   factory Feature({
     required State initialState,
-    required Update<State, Msg, Effect> update,
-    List<EffectHandler<Effect, Msg>> effectHandlers = const [],
+    required Update<State, Message, Effect> update,
+    List<EffectHandler<Effect, Message>> effectHandlers = const [],
     List<Effect> initialEffects = const [],
     List<Effect> disposableEffects = const [],
   }) =>
@@ -86,7 +86,7 @@ abstract interface class Feature<State, Msg, Effect> implements Disposable {
   ///
   /// Invoked to handle messages that may trigger state updates or effects.
   /// This method will use Update function to handle changes and send result forward.
-  void accept(Msg message);
+  void accept(Message message);
 
   /// A stream of transitions representing each state change step in the feature.
   ///
@@ -115,7 +115,7 @@ abstract interface class Feature<State, Msg, Effect> implements Disposable {
   ///   }
   /// });
   /// ```
-  Stream<Transition<State, Msg, Effect>> get transitions;
+  Stream<Transition<State, Message, Effect>> get transitions;
 
   /// Initializes the feature and prepares it for usage.
   ///

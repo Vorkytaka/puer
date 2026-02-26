@@ -25,7 +25,7 @@ typedef Next<State, Effect> = (State?, List<Effect>);
 /// A pure function type that updates the state in response to a message.
 ///
 /// - [State]: The type representing the feature's state.
-/// - [Msg]: The type representing messages that trigger state changes.
+/// - [Message]: The type representing messages that trigger state changes.
 /// - [Effect]: The type of side effects triggered during the update.
 ///
 /// This function takes the current state and an incoming message, then returns a [Next]
@@ -34,7 +34,7 @@ typedef Next<State, Effect> = (State?, List<Effect>);
 /// The main idea is that this function __must__ be pure.
 /// If it's not, you might want to look at other state managers. :)
 @experimental
-typedef Update<State, Msg, Effect> = Next<State, Effect> Function(
+typedef Update<State, Message, Effect> = Next<State, Effect> Function(
   State state,
-  Msg message,
+  Message message,
 );

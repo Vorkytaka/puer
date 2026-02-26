@@ -21,8 +21,8 @@ import 'package:puer/puer.dart';
 /// );
 /// ```
 @experimental
-final class DebounceEffectHandler<Effect, Msg>
-    implements EffectHandler<Effect, Msg>, Disposable {
+final class DebounceEffectHandler<Effect, Message>
+    implements EffectHandler<Effect, Message>, Disposable {
   /// The duration to wait before handling the effect.
   ///
   /// This defines the debounce interval. Any effect scheduled within this
@@ -32,7 +32,7 @@ final class DebounceEffectHandler<Effect, Msg>
   /// The underlying effect handler that processes the effects after the debounce interval.
   ///
   /// This handler is invoked with the debounced effect once the delay has elapsed.
-  final EffectHandler<Effect, Msg> _handler;
+  final EffectHandler<Effect, Message> _handler;
 
   /// The timer used to manage the debounce delay.
   Timer? _timer;
@@ -44,7 +44,7 @@ final class DebounceEffectHandler<Effect, Msg>
   /// - [handler]: The actual effect handler to invoke after the debounce delay.
   DebounceEffectHandler({
     required this.duration,
-    required EffectHandler<Effect, Msg> handler,
+    required EffectHandler<Effect, Message> handler,
   }) : _handler = handler;
 
   /// Handles an effect with debounce logic.
@@ -58,7 +58,7 @@ final class DebounceEffectHandler<Effect, Msg>
   @override
   FutureOr<void> call(
     Effect effect,
-    MsgEmitter<Msg> emit,
+    MsgEmitter<Message> emit,
   ) {
     _cancelTimer();
     _timer = Timer(duration, () => _handler(effect, emit));

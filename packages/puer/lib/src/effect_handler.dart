@@ -6,17 +6,7 @@ import 'package:meta/meta.dart';
 ///
 /// Used to trigger messages that may influence state changes or cause further effects.
 @experimental
-typedef MsgEmitter<Msg> = void Function(Msg message);
-
-/// Interface for emitting messages.
-///
-/// This provides a callable structure to trigger messages, offering a more abstract
-/// alternative to [MsgEmitter].
-@experimental
-abstract interface class IMsgEmitter<Msg> {
-  /// Emits the specified [message].
-  void call(Msg message);
-}
+typedef MsgEmitter<Message> = void Function(Message message);
 
 /// Interface for handling effects.
 ///
@@ -25,24 +15,24 @@ abstract interface class IMsgEmitter<Msg> {
 /// directly modifying the state.
 ///
 /// - [Effect]: The type of effects this handler processes.
-/// - [Msg]: The type of messages this handler can emit.
+/// - [Message]: The type of messages this handler can emit.
 @experimental
-abstract interface class EffectHandler<Effect, Msg> {
+abstract interface class EffectHandler<Effect, Message> {
   /// Processes the given [effect] and optionally emits messages using [emit].
   ///
   /// This method may execute asynchronously or synchronously, depending on the effect's nature.
   /// - [effect]: The effect to process.
   /// - [emit]: A function to emit messages in response to the effect.
-  FutureOr<void> call(Effect effect, MsgEmitter<Msg> emit);
+  FutureOr<void> call(Effect effect, MsgEmitter<Message> emit);
 }
 
 /// A functional representation of an effect handler.
 ///
 /// Equivalent to [EffectHandler] but defined as a function type for simpler usage.
 /// - [Effect]: The type of effects handled.
-/// - [Msg]: The type of messages emitted.
+/// - [Message]: The type of messages emitted.
 @experimental
-typedef FunEffectHandler<Effect, Msg> = FutureOr<void> Function(
+typedef FunEffectHandler<Effect, Message> = FutureOr<void> Function(
   Effect effect,
-  MsgEmitter<Msg> emit,
+  MsgEmitter<Message> emit,
 );

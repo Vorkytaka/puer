@@ -19,16 +19,16 @@ import 'package:puer/puer.dart';
 /// );
 /// ```
 @experimental
-final class SequentialEffectHandler<Effect, Msg>
-    implements EffectHandler<Effect, Msg>, Disposable {
+final class SequentialEffectHandler<Effect, Message>
+    implements EffectHandler<Effect, Message>, Disposable {
   /// The wrapped effect handler that processes individual effects.
-  final EffectHandler<Effect, Msg> _handler;
+  final EffectHandler<Effect, Message> _handler;
 
   /// The internal queue that holds effects to be processed.
   ///
   /// Each entry in the queue is a tuple containing the effect and its associated
   /// [MsgEmitter] function.
-  final _queue = Queue<(Effect, MsgEmitter<Msg>)>();
+  final _queue = Queue<(Effect, MsgEmitter<Message>)>();
 
   /// Tracks whether the handler is currently processing an effect.
   bool _isProcessing = false;
@@ -37,7 +37,7 @@ final class SequentialEffectHandler<Effect, Msg>
   ///
   /// - [handler]: The effect handler that will process the effects sequentially.
   SequentialEffectHandler({
-    required EffectHandler<Effect, Msg> handler,
+    required EffectHandler<Effect, Message> handler,
   }) : _handler = handler;
 
   /// Queues an effect for processing and starts the processing loop if not already active.
@@ -47,7 +47,7 @@ final class SequentialEffectHandler<Effect, Msg>
   @override
   Future<void> call(
     Effect effect,
-    MsgEmitter<Msg> emit,
+    MsgEmitter<Message> emit,
   ) async {
     _queue.add((effect, emit));
     if (!_isProcessing) {
