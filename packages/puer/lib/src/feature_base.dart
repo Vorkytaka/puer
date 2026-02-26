@@ -32,7 +32,7 @@ base class FeatureBase<State, Message, Effect>
   FeatureBase({
     required State initialState,
     required this.update,
-    required List<EffectHandler<Effect, Message>> effectHandlers,
+    List<EffectHandler<Effect, Message>> effectHandlers = const [],
     List<Effect> initialEffects = const [],
     List<Effect> disposableEffects = const [],
   })  : _stateSubject = StateStream.seeded(initialState),

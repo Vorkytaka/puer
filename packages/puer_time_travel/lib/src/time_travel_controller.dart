@@ -312,12 +312,40 @@ final class TimeTravelController {
   }
 }
 
-final class TimeTravelFeature<State, Message, Effect>
-    extends FeatureBase<State, Message, Effect> {
+abstract interface class TimeTravelFeature<State, Message, Effect>
+    implements Feature<State, Message, Effect> {
+  String get name;
+
+  factory TimeTravelFeature({
+    required String name,
+    required State initialState,
+    required Update<State, Message, Effect> update,
+    List<EffectHandler<Effect, Message>> effectHandlers = const [],
+    List<Effect> initialEffects = const [],
+    List<Effect> disposableEffects = const [],
+    TimeTravelController? controller,
+  }) =>
+      _TimeTravelFeature(
+        name: name,
+        initialState: initialState,
+        update: update,
+        effectHandlers: effectHandlers,
+        initialEffects: initialEffects,
+        disposableEffects: disposableEffects,
+        controller: controller,
+      );
+
+  void _processState(State state);
+}
+
+final class _TimeTravelFeature<State, Message, Effect>
+    extends FeatureBase<State, Message, Effect>
+    implements TimeTravelFeature<State, Message, Effect> {
   final TimeTravelController _timeTravelController;
+  @override
   final String name;
 
-  TimeTravelFeature({
+  _TimeTravelFeature({
     required this.name,
     required super.initialState,
     required super.update,
@@ -370,6 +398,7 @@ final class TimeTravelFeature<State, Message, Effect>
     }
   }
 
+  @override
   void _processState(State state) => emitState(state);
 }
 
