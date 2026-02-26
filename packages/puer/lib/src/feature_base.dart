@@ -9,19 +9,19 @@ import 'state_stream.dart';
 import 'transition.dart';
 import 'update.dart';
 
-base class FeatureBase<State, Msg, Effect>
-    implements Feature<State, Msg, Effect> {
+base class FeatureBase<State, Message, Effect>
+    implements Feature<State, Message, Effect> {
   @protected
-  final Update<State, Msg, Effect> update;
+  final Update<State, Message, Effect> update;
 
   @protected
-  final List<EffectHandler<Effect, Msg>> effectHandlers;
+  final List<EffectHandler<Effect, Message>> effectHandlers;
 
   final StateStream<State> _stateSubject;
 
   final _effectsController = StreamController<Effect>.broadcast();
   final _transitionController =
-      StreamController<Transition<State, Msg, Effect>>.broadcast();
+      StreamController<Transition<State, Message, Effect>>.broadcast();
 
   @override
   final List<Effect> initialEffects;
@@ -32,7 +32,7 @@ base class FeatureBase<State, Msg, Effect>
   FeatureBase({
     required State initialState,
     required this.update,
-    required List<EffectHandler<Effect, Msg>> effectHandlers,
+    required List<EffectHandler<Effect, Message>> effectHandlers,
     List<Effect> initialEffects = const [],
     List<Effect> disposableEffects = const [],
   })  : _stateSubject = StateStream.seeded(initialState),
@@ -82,7 +82,7 @@ base class FeatureBase<State, Msg, Effect>
   @protected
   void emitTransition({
     required State oldState,
-    required Msg message,
+    required Message message,
     required State? newState,
     required List<Effect> effects,
   }) {
@@ -102,7 +102,7 @@ base class FeatureBase<State, Msg, Effect>
   }
 
   @override
-  void accept(Msg message) {
+  void accept(Message message) {
     if (_isDisposed) {
       throw StateError('Cannot accept message after FeatureBase is disposed.');
     }
@@ -124,7 +124,7 @@ base class FeatureBase<State, Msg, Effect>
   }
 
   @override
-  Stream<Transition<State, Msg, Effect>> get transitions =>
+  Stream<Transition<State, Message, Effect>> get transitions =>
       _transitionController.stream;
 
   @override

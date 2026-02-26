@@ -21,7 +21,8 @@ import 'package:test/test.dart';
 /// );
 /// ```
 @experimental
-extension EffectHandlerTests<Effect, Msg> on EffectHandler<Effect, Msg> {
+extension EffectHandlerTests<Effect, Message>
+    on EffectHandler<Effect, Message> {
   /// Tests the behavior of the [EffectHandler] by verifying
   /// the messages it emits in response to the given [effect].
   ///
@@ -34,9 +35,9 @@ extension EffectHandlerTests<Effect, Msg> on EffectHandler<Effect, Msg> {
   /// [expectedMessages] is not provided, it asserts that no messages are emitted.
   Future<void> test({
     required Effect effect,
-    Iterable<Msg> expectedMessages = const [],
+    Iterable<Message> expectedMessages = const [],
   }) async {
-    final actual = <Msg>[];
+    final actual = <Message>[];
     await call(effect, actual.add);
     if (expectedMessages.isEmpty) {
       expect(actual, isEmpty);

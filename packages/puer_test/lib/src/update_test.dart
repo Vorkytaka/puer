@@ -25,7 +25,7 @@ import 'package:test/test.dart';
 /// );
 /// ```
 @experimental
-extension UpdateTest<State, Msg, Effect> on Update<State, Msg, Effect> {
+extension UpdateTest<State, Message, Effect> on Update<State, Message, Effect> {
   /// Tests the behavior of an [Update] function by verifying the resulting
   /// state and effects.
   ///
@@ -38,7 +38,7 @@ extension UpdateTest<State, Msg, Effect> on Update<State, Msg, Effect> {
   /// to the expected values using the `expect` matcher.
   void test({
     required State state,
-    required Msg message,
+    required Message message,
     State? expectedState,
     List<Effect> expectedEffects = const [],
   }) {
