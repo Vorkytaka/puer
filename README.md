@@ -495,7 +495,13 @@ For simple, local UI state (e.g., "is this menu open?"), direct mutation is fine
 
 ## Quick start
 
-### 1. Add dependencies
+This quick start builds a counter feature in three steps, progressively introducing core puer concepts:
+
+1. **Step 1:** Pure state — a counter with increment/decrement, no side effects
+2. **Step 2:** Add persistence — save the count on every update
+3. **Step 3:** Load on init — restore the saved count when the feature starts
+
+**Add dependencies first:**
 
 ```yaml
 # pubspec.yaml
@@ -507,42 +513,33 @@ dev_dependencies:
   puer_test: ^1.0.0-alpha.1      # For testing
 ```
 
-### 2. Define your domain types
+---
+
+### Step 1: Pure state (no side effects)
+
+Start with the simplest possible feature: an integer counter with increment and decrement.
+
+**Domain types:**
 
 ```dart
-// State is a plain immutable value.
+import 'package:puer/puer.dart';
+
+// State: just an integer count
 final class CounterState {
   const CounterState({required this.count});
   final int count;
 }
 
-// Messages are sealed so the compiler enforces exhaustive handling.
+// Messages: sealed class for exhaustive switch handling
 sealed class CounterMessage {}
 final class Increment extends CounterMessage {}
 final class Decrement extends CounterMessage {}
-final class Reset extends CounterMessage {}
 ```
 
-**State immutability:** For complex state objects with multiple fields, add a `copyWith` method or use code generation tools like `freezed` or `built_value`. This README uses inline constructors for brevity.
-
-**⚠️ IMPORTANT: State equality**
-
-By default, Dart compares objects by identity (reference), not value. The examples in this README use simple single-field classes for brevity, but real apps should use one of:
-
-1. Override `==` and `hashCode` manually
-2. Use `equatable` package: `class MyState extends Equatable`
-3. Use `freezed` code generation
-
-Without this, your widgets will rebuild on every message, even if the state values haven't changed (because `Feature` uses `!=` to determine whether to emit the new state).
-
-### 3. Write the pure `update` function
+**Update function:**
 
 ```dart
-import 'package:puer/puer.dart';
-
-// Note: `Never` means this feature has no effects (pure state transitions only).
-// Use a sealed effect type (e.g., `sealed class CounterEffect {}`) if you need
-// to perform side effects.
+// Effect type = Never (no side effects yet)
 Next<CounterState, Never> counterUpdate(
   CounterState state,
   CounterMessage message,
@@ -550,11 +547,224 @@ Next<CounterState, Never> counterUpdate(
     switch (message) {
       Increment() => next(state: CounterState(count: state.count + 1)),
       Decrement() => next(state: CounterState(count: state.count - 1)),
-      Reset() => next(state: const CounterState(count: 0)),
     };
 ```
 
-**Understanding `next()`:**
+**Create the feature:**
+
+```dart
+final feature = Feature<CounterState, CounterMessage, Never>(
+  initialState: const CounterState(count: 0),
+  update: counterUpdate,
+);
+
+feature.init();
+feature.accept(Increment());
+print(feature.state.count);  // 1
+```
+
+**Key takeaway:** The `update` function is pure — given the same state and message, it always returns the same new state. No async, no side effects, easy to test.
+
+---
+
+### Step 2: Add persistence (save on every update)
+
+Now we want to save the count to persistent storage every time it changes. In puer, `update` never does async work — instead, it returns an `Effect` value that describes what should happen. An `EffectHandler` executes the effect.
+
+**What changes:**
+
+1. Add an `Effect` type to represent "save this value"
+2. Update the `update` function to return a `SaveCount` effect on every state change
+3. Write an `EffectHandler` that performs the actual save operation
+4. Register the handler with the feature
+
+**Add the effect type:**
+
+```dart
+// New: effect sealed class
+sealed class CounterEffect {}
+final class SaveCount extends CounterEffect {
+  const SaveCount(this.count);
+  final int count;
+}
+```
+
+**Update the `update` function signature and logic:**
+
+```dart
+// Change Never → CounterEffect
+Next<CounterState, CounterEffect> counterUpdate(
+  CounterState state,
+  CounterMessage message,
+) =>
+    switch (message) {
+      Increment() => next(
+          state: CounterState(count: state.count + 1),
+          effects: [SaveCount(state.count + 1)],  // Emit save effect
+        ),
+      Decrement() => next(
+          state: CounterState(count: state.count - 1),
+          effects: [SaveCount(state.count - 1)],  // Emit save effect
+        ),
+    };
+```
+
+**Write the effect handler:**
+
+```dart
+// Abstract storage interface (implementation not shown)
+abstract interface class CounterStorage {
+  Future<void> saveCount(int count);
+}
+
+final class SaveCountHandler
+    implements EffectHandler<CounterEffect, CounterMessage> {
+  const SaveCountHandler(this._storage);
+  final CounterStorage _storage;
+
+  @override
+  Future<void> call(
+    CounterEffect effect,
+    MsgEmitter<CounterMessage> emit,
+  ) async {
+    switch (effect) {
+      case SaveCount(:final count):
+        await _storage.saveCount(count);
+        // This is a fire-and-forget effect — no message emitted back
+    }
+  }
+}
+```
+
+**Register the handler:**
+
+```dart
+final storage = ...; // Your storage implementation
+
+final feature = Feature<CounterState, CounterMessage, CounterEffect>(
+  initialState: const CounterState(count: 0),
+  update: counterUpdate,
+  effectHandlers: [SaveCountHandler(storage)],  // Register handler
+);
+
+feature.init();
+feature.accept(Increment());
+// update runs (synchronous), state changes, SaveCount effect is emitted
+// SaveCountHandler receives SaveCount, performs async save
+```
+
+**Key takeaway:** `update` stays pure and testable. Effects are plain data values. Handlers do the dirty async work and are tested separately.
+
+---
+
+### Step 3: Load on init (restore saved count)
+
+Now we want to load the saved count when the feature starts. Puer provides `initialEffects` for exactly this: effects that are triggered immediately when `feature.init()` is called.
+
+**What changes:**
+
+1. Add a `LoadCount` effect
+2. Add a `CountLoaded` message (the handler will emit this when load completes)
+3. Handle `CountLoaded` in `update` to update the state
+4. Add a `LoadCount` handler
+5. Pass `[LoadCount()]` to the `initialEffects` parameter
+
+**Add the new effect and message:**
+
+```dart
+// Add to effect sealed class:
+sealed class CounterEffect {}
+final class SaveCount extends CounterEffect {
+  const SaveCount(this.count);
+  final int count;
+}
+final class LoadCount extends CounterEffect {}  // New
+
+// Add to message sealed class:
+sealed class CounterMessage {}
+final class Increment extends CounterMessage {}
+final class Decrement extends CounterMessage {}
+final class CountLoaded extends CounterMessage {  // New
+  const CountLoaded(this.count);
+  final int count;
+}
+```
+
+**Handle `CountLoaded` in `update`:**
+
+```dart
+Next<CounterState, CounterEffect> counterUpdate(
+  CounterState state,
+  CounterMessage message,
+) =>
+    switch (message) {
+      Increment() => next(
+          state: CounterState(count: state.count + 1),
+          effects: [SaveCount(state.count + 1)],
+        ),
+      Decrement() => next(
+          state: CounterState(count: state.count - 1),
+          effects: [SaveCount(state.count - 1)],
+        ),
+      CountLoaded(:final count) => next(  // New case
+          state: CounterState(count: count),
+        ),
+    };
+```
+
+**Extend the storage interface and handler:**
+
+```dart
+abstract interface class CounterStorage {
+  Future<void> saveCount(int count);
+  Future<int?> loadCount();  // New
+}
+
+final class CounterEffectHandler
+    implements EffectHandler<CounterEffect, CounterMessage> {
+  const CounterEffectHandler(this._storage);
+  final CounterStorage _storage;
+
+  @override
+  Future<void> call(
+    CounterEffect effect,
+    MsgEmitter<CounterMessage> emit,
+  ) async {
+    switch (effect) {
+      case SaveCount(:final count):
+        await _storage.saveCount(count);
+      case LoadCount():  // New case
+        final count = await _storage.loadCount();
+        if (count != null) {
+          emit(CountLoaded(count));  // Send message back to feature
+        }
+    }
+  }
+}
+```
+
+**Create the feature with `initialEffects`:**
+
+```dart
+final feature = Feature<CounterState, CounterMessage, CounterEffect>(
+  initialState: const CounterState(count: 0),
+  update: counterUpdate,
+  effectHandlers: [CounterEffectHandler(storage)],
+  initialEffects: [LoadCount()],  // Run immediately on init()
+);
+
+feature.init();
+// init() triggers LoadCount effect → handler loads count → emits CountLoaded(42)
+// → update receives CountLoaded(42) → state becomes CounterState(count: 42)
+```
+
+**Key takeaway:** `initialEffects` lets you run async setup logic (load saved state, fetch config, etc.) when the feature starts, while keeping `update` pure. The flow is: `init()` → effect emitted → handler runs async work → handler emits message → `update` receives message → state updates.
+
+---
+
+### Understanding `next()`
+
+The `next()` helper constructs the return value for `update`. It accepts optional `state` and `effects` parameters:
 
 ```dart
 // No state change, no effects:
@@ -569,39 +779,18 @@ return next(state: newState, effects: [effect1, effect2]);
 
 Returning `state: null` means "do not emit a new state" — the `stateStream` will not fire and widgets will not rebuild.
 
-### 4. Create the feature (pure Dart, no Flutter)
+---
 
-```dart
-final feature = Feature<CounterState, CounterMessage, Never>(
-  initialState: const CounterState(count: 0),
-  update: counterUpdate,
-);
+### Integrate with Flutter
 
-feature.init();  // Required before use (currently synchronous)
-feature.accept(Increment());
-print(feature.state.count);  // 1
-await feature.dispose();     // Cleanup
-```
-
-**⚠️ Resource management:**
-- Always call `dispose()` when done with a manually-created feature
-- Feature holds internal stream controllers that must be closed
-- Safe to call `dispose()` multiple times (idempotent)
-- In Flutter, `FeatureProvider.create()` handles `init()` and `dispose()` automatically
-
-### 5. Integrate with Flutter
-
-To reduce type parameter verbosity, define a typedef for your feature:
-
-```dart
-typedef CounterFeature = Feature<CounterState, CounterMessage, Never>;
-```
-
-Now wire it into the widget tree:
+To use the feature in Flutter, wrap it in a `FeatureProvider` and consume the state with `FeatureBuilder`:
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:puer_flutter/puer_flutter.dart';
+
+// Define a typedef to reduce verbosity
+typedef CounterFeature = Feature<CounterState, CounterMessage, CounterEffect>;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -610,9 +799,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: FeatureProvider<CounterFeature>.create(
-        create: (_) => Feature<CounterState, CounterMessage, Never>(
+        create: (_) => Feature<CounterState, CounterMessage, CounterEffect>(
           initialState: const CounterState(count: 0),
           update: counterUpdate,
+          effectHandlers: [CounterEffectHandler(storage)],
+          initialEffects: [LoadCount()],
         ),
         child: const CounterPage(),
       ),
@@ -625,19 +816,25 @@ class CounterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Look up the feature once, outside the builder
     final feature = FeatureProvider.of<CounterFeature>(context);
 
-    // Type parameters explained:
-    // - CounterFeature: The feature type (contains state, message, effect types)
-    // - CounterState: The state type (for type-safe builder callback signature)
     return FeatureBuilder<CounterFeature, CounterState>(
       builder: (context, state) {
         return Scaffold(
           body: Center(child: Text('${state.count}')),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => feature.accept(Increment()),
-            child: const Icon(Icons.add),
+          floatingActionButton: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FloatingActionButton(
+                onPressed: () => feature.accept(Increment()),
+                child: const Icon(Icons.add),
+              ),
+              const SizedBox(height: 8),
+              FloatingActionButton(
+                onPressed: () => feature.accept(Decrement()),
+                child: const Icon(Icons.remove),
+              ),
+            ],
           ),
         );
       },
@@ -650,141 +847,23 @@ class CounterPage extends StatelessWidget {
 - `FeatureProvider.create` automatically calls `feature.init()` when the widget enters the tree and `feature.dispose()` when it leaves.
 - If you create a feature manually outside Flutter (or in tests), you must call `init()` and `dispose()` yourself.
 
-**Performance note:** `Feature` only emits a new state to `stateStream` if `newState != currentState` evaluates to true. By default this is an identity check (same object reference), but if you override `==` and `hashCode`, it becomes a value equality check. For complex state objects, consider using value types (via `equatable` or `freezed`) to prevent unnecessary widget rebuilds when the state values haven't actually changed.
-
 ---
 
-## Side effects example
+### Important notes
 
-Real apps perform async work. In puer, `update` never does async work itself — it returns an `Effect` value instead. A dedicated `EffectHandler` does the async work and feeds results back as messages.
+**⚠️ State equality**
 
-### Domain types
+By default, Dart compares objects by identity (reference), not value. `Feature` only emits a new state if `newState != currentState`. For single-field classes like `CounterState`, this works because you create a new instance on every change. For complex state objects with multiple fields, you should:
 
-```dart
-// State
-final class TodoState {
-  const TodoState({required this.todos, required this.isLoading});
-  final List<String> todos;
-  final bool isLoading;
-  
-  // copyWith for immutable updates
-  TodoState copyWith({List<String>? todos, bool? isLoading}) =>
-    TodoState(
-      todos: todos ?? this.todos,
-      isLoading: isLoading ?? this.isLoading,
-    );
-}
+1. Override `==` and `hashCode` manually, or
+2. Use the `equatable` package: `class MyState extends Equatable`, or
+3. Use `freezed` code generation
 
-// Messages
-sealed class TodoMessage {}
-final class LoadTodos extends TodoMessage {}
+Without value equality, widgets may rebuild unnecessarily (if you emit a new instance with the same values) or fail to rebuild (if you mutate an existing instance).
 
-final class TodosLoaded extends TodoMessage {
-  TodosLoaded(this.todos);
-  final List<String> todos;
-}
+**⚠️ Resource management**
 
-final class TodosLoadFailed extends TodoMessage {}
-
-// Effects — plain data values, no logic here
-sealed class TodoEffect {}
-final class FetchTodos extends TodoEffect {}
-```
-
-### Pure `update` function
-
-```dart
-Next<TodoState, TodoEffect> todoUpdate(
-  TodoState state,
-  TodoMessage message,
-) =>
-    switch (message) {
-      LoadTodos() => next(
-          state: state.copyWith(isLoading: true),
-          effects: [FetchTodos()],
-        ),
-      // Using Dart 3 named pattern matching to extract the todos field
-      TodosLoaded(:final todos) => next(
-          state: state.copyWith(todos: todos, isLoading: false),
-        ),
-      TodosLoadFailed() => next(
-          state: state.copyWith(isLoading: false),
-        ),
-    };
-```
-
-`update` stays pure. It does not know how `FetchTodos` is executed — it simply declares that the effect should happen.
-
-### Effect handler
-
-```dart
-// Example repository interface (not part of puer)
-abstract interface class TodoRepository {
-  Future<List<String>> fetchAll();
-}
-
-final class FetchTodosHandler
-    implements EffectHandler<TodoEffect, TodoMessage> {
-  const FetchTodosHandler(this._repository);
-  final TodoRepository _repository;
-
-  @override
-  Future<void> call(TodoEffect effect, MsgEmitter<TodoMessage> emit) async {
-    switch (effect) {
-      case FetchTodos():
-        try {
-          final todos = await _repository.fetchAll();
-          emit(TodosLoaded(todos));
-        } on Exception {
-          emit(TodosLoadFailed());
-        }
-    }
-  }
-}
-```
-
-**Handler guidelines:**
-- Catch specific exception types (avoid bare `catch (e)`)
-- Always emit a message when the work completes (success or failure)
-- If the effect is fire-and-forget (no result needed), it's fine not to emit anything
-
-**Example of fire-and-forget effect:**
-
-```dart
-// Effect that tracks analytics events
-sealed class Effect {}
-final class LogAnalyticsEvent extends Effect {
-  const LogAnalyticsEvent(this.eventName);
-  final String eventName;
-}
-
-// Handler doesn't emit anything — just logs and returns
-final class LogAnalyticsHandler implements EffectHandler<Effect, Message> {
-  const LogAnalyticsHandler(this._analytics);
-  final AnalyticsService _analytics;
-  
-  @override
-  Future<void> call(Effect effect, MsgEmitter<Message> emit) async {
-    switch (effect) {
-      case LogAnalyticsEvent(:final eventName):
-        await _analytics.log(eventName);  // No result to report
-    }
-  }
-}
-```
-
-### Wiring it together
-
-```dart
-final feature = Feature<TodoState, TodoMessage, TodoEffect>(
-  initialState: const TodoState(todos: [], isLoading: false),
-  update: todoUpdate,
-  effectHandlers: [FetchTodosHandler(repository)],
-  initialEffects: [FetchTodos()],  // Run FetchTodos immediately on init
-);
-
-feature.init();
-```
+Always call `dispose()` when done with a manually-created feature. Feature holds internal stream controllers that must be closed. Safe to call `dispose()` multiple times (idempotent). In Flutter, `FeatureProvider.create()` handles `init()` and `dispose()` automatically.
 
 ---
 
@@ -907,76 +986,6 @@ void main() {
 Effect handlers require mocks for their dependencies (repositories, services), but the handler itself is tested in isolation from `update`.
 
 ![Test pyramid](media/images/test-pyramid.png)
-
----
-
-## Error handling
-
-Errors in puer are modeled as **messages**, not thrown exceptions. This makes error states explicit and testable.
-
-### Pattern 1: Error messages
-
-```dart
-sealed class Message {}
-final class LoadRequested extends Message {}
-final class LoadSucceeded extends Message {
-  LoadSucceeded(this.data);
-  final String data;
-}
-final class LoadFailed extends Message {
-  LoadFailed(this.error);
-  final String error;
-}
-
-Next<State, Effect> update(State state, Message msg) {
-  return switch (msg) {
-    LoadRequested() => next(
-      state: state.copyWith(isLoading: true, error: null),
-      effects: [FetchData()],
-    ),
-    LoadSucceeded(:final data) => next(
-      state: state.copyWith(data: data, isLoading: false, error: null),
-    ),
-    LoadFailed(:final error) => next(
-      state: state.copyWith(isLoading: false, error: error),
-    ),
-  };
-}
-```
-
-### Pattern 2: Error state field
-
-```dart
-final class State {
-  const State({required this.data, this.error});
-  final String? data;
-  final String? error;  // null = no error
-}
-```
-
-UI can check `state.error != null` and display an error banner.
-
-### What happens if an effect handler throws an unhandled exception?
-
-If an effect handler throws an exception that is not caught, the exception **propagates to the zone** where the feature's effect subscription was created. In Flutter, this typically means:
-- Debug mode: red screen with stack trace
-- Release mode: app may crash (depending on zone error handler)
-
-**Best practice:** Always catch exceptions in effect handlers and convert them to error messages:
-
-```dart
-@override
-Future<void> call(Effect effect, MsgEmitter<Message> emit) async {
-  try {
-    // ... async work
-    emit(SuccessMessage());
-  } on SpecificException catch (e) {
-    emit(FailureMessage(e.message));
-  } on Exception catch (e) {
-    emit(FailureMessage('An unexpected error occurred'));
-  }
-}
-```
 
 ---
 
