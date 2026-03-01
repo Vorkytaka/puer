@@ -4,19 +4,7 @@ A reactive, functional state management library for Dart and Flutter, built on T
 
 **The Elm Architecture (TEA)** is a functional programming pattern where state updates are pure functions and side effects are represented as explicit data. Puer brings this mental model to Dart and Flutter, enforcing a strict separation between logic (testable, pure) and execution (controlled, traceable).
 
----
-
-## Badges
-
-<!-- root repo -->
-[![GitHub](https://img.shields.io/badge/github-puer-181717?logo=github)](https://github.com/your-org/puer)
-[![CI](https://github.com/your-org/puer/actions/workflows/validate_repository.yml/badge.svg)](https://github.com/your-org/puer/actions/workflows/validate_repository.yml)
-
-<!-- pub.dev packages -->
-[![puer pub](https://img.shields.io/pub/v/puer?label=puer)](https://pub.dev/packages/puer)
-[![puer_flutter pub](https://img.shields.io/pub/v/puer_flutter?label=puer_flutter)](https://pub.dev/packages/puer_flutter)
-[![puer_test pub](https://img.shields.io/pub/v/puer_test?label=puer_test)](https://pub.dev/packages/puer_test)
-[![puer_time_travel pub](https://img.shields.io/pub/v/puer_time_travel?label=puer_time_travel)](https://pub.dev/packages/puer_time_travel)
+![Puer logo](media/images/logo.png)
 
 ---
 
@@ -33,94 +21,6 @@ This separation eliminates entire classes of bugs. Your state transitions are de
 - **Time-travel debugging.** `TimeTravelFeature` records every message and lets you step backward and forward through your app's history — including a dedicated DevTools extension.
 - **Composable effect handlers.** `puer_effect_handlers` (available in this repository, not yet published to pub.dev) ships ready-made wrappers: debounce, sequential execution, type adaptation, and isolate offloading. They compose via extension methods.
 - **Minimal Flutter coupling.** The core `puer` package is pure Dart. Flutter integration lives in `puer_flutter` and is optional.
-
----
-
-## Traceability: Why explicit messages matter
-
-One of puer's biggest advantages over simpler patterns is **traceability**. Every state change is caused by a message, and both are recorded in the `transitions` stream.
-
-How does it looks in real world?
-
-### Level 1: Direct mutation
-
-Consider a simple state manager where you call methods directly (like a Cubit):
-
-When your app logs state changes, you see:
-
-```
-Transaction {
-  before: AuthState.authenticated,
-  after: AuthState.unauthenticated
-}
-```
-
-**You know WHAT changed, but not WHY.** Was it a manual logout? A token expiration? You can't tell from the log.
-
-### Level 2: Event-based state management
-
-In event-based patterns (like BLoC), every state change is triggered by an event:
-
-Now your logs show:
-
-```
-Transaction {
-  before: AuthState.authenticated,
-  event: LogoutRequested,
-  after: AuthState.unauthenticated
-}
-```
-
-**You know WHY the state changed**, but side effects (network calls, storage operations) are hidden inside event handlers. If logout fails, you can't see which effects were triggered from the log alone.
-
-### Level 3: The puer approach
-
-In puer, every state change is caused by a message, **and effects are explicit data**:
-
-When you request logout, your logs from `feature.transitions` show:
-
-```
-Transaction {
-  before: AuthState.authenticated,
-  message: LogoutRequested,
-  after: AuthState.loggingOut,
-  effects: [PerformLogout]
-}
-
-Transaction {
-  before: AuthState.loggingOut,
-  message: LogoutSucceeded,
-  after: AuthState.unauthenticated,
-  effects: [CleanData]
-}
-```
-
-**You know exactly WHY each state changed AND what side effects were triggered.** The complete flow is visible:
-1. User requests logout → state becomes "logging out" → logout effect is triggered
-2. Logout completes successfully → state becomes "unauthenticated" → also send effect to clean data 
-
-If a bug report says "logout didn't work", you can check the transition log and see:
-- Was `PerformLogout` effect emitted?
-- Did `LogoutSucceeded` message ever arrive?
-- Where in the flow did it fail?
-
-### When traceability matters most
-
-Use explicit messages (puer) over direct mutation or event-based patterns when:
-
-- **Critical state transitions** need audit trails (auth, payments, user data)
-- **Debugging production issues** requires understanding why state changed
-- **Complex flows** have multiple paths to the same state (logged out via timeout vs manual logout)
-- **Time-travel debugging** is valuable for your feature
-- **Effect execution** needs to be visible in logs (not hidden inside handlers)
-
-For simple, local UI state (e.g., "is this menu open?"), direct mutation is fine. For business-critical state, full traceability is worth the cost of defining message types.
-
-<!-- TODO(image): Three-column comparison showing:
-     Left: "Direct Mutation" with Transaction { before, after } - missing the "why"
-     Middle: "Event-Based" with Transaction { before, event, after } - missing side effects
-     Right: "Puer" with two Transactions showing complete flow with messages and effects
--->
 
 ---
 
@@ -176,20 +76,12 @@ The table reflects general usage patterns; every library can be pushed toward st
 
 Every state change follows the same cycle:
 
-<!-- TODO(image): Data flow diagram showing:
-     - View widget calling feature.accept(Message)
-     - Message flowing into update() function
-     - update() returning (State?, List<Effect>)
-     - State? flowing to stateStream → widgets rebuild
-     - Effects flowing to EffectHandler(s) → async work
-     - EffectHandler calling emit(Message) to complete the cycle
-     Include visual separation showing "pure world" (update) vs "impure world" (handlers)
--->
+![Data-flow](media/images/data-flow.png)
 
 **Data flow cycle:**
 
 1. A widget (or any code) calls `feature.accept(message)`.
-2. `update(currentState, message)` runs **synchronously** and returns a new state and a list of effects.
+2. `update(currentState, message)` runs **synchronously** and returns a new state and an optional list of effects.
 3. If the state changed, `stateStream` emits and widgets rebuild.
 4. Each effect is forwarded to every registered `EffectHandler`.
 5. Handlers do async work (network, storage, timers) and call `emit(message)` to send new messages **back to the feature** — completing the loop.
@@ -317,30 +209,6 @@ final class AuthenticateUser extends AuthEffect {
 
 **The rule:** If you can't easily serialize it to JSON, it's not "just data". Move the logic to `update` (for business rules) or `EffectHandler` (for execution).
 
-### Real-world example: crash recovery
-
-Because state is just data, you can save it on every change:
-
-```dart
-final feature = Feature<AppState, AppMessage, AppEffect>(
-  initialState: await loadStateFromDisk() ?? AppState.initial(),
-  update: appUpdate,
-  effectHandlers: [
-    SaveStateHandler(),  // Saves state to disk after each update
-    // ... other handlers
-  ],
-);
-```
-
-If your app crashes, the next launch restores the exact state. No special "save" button, no manual persistence layer.
-
-<!-- TODO(image): Diagram showing:
-     - State/Message/Effect as simple boxes with field names
-     - Arrow showing "toJson()" → JSON string
-     - Arrow showing JSON string → "fromJson()" → reconstructed object
-     - Timeline showing: Record messages → Save → Crash → Load → Replay → Restored state
--->
-
 ---
 
 ## Why pure functions matter
@@ -425,12 +293,6 @@ final class FetchDataHandler implements EffectHandler<Effect, Message> {
 1. **Testing:** You can test every state transition with a single synchronous function call. No mocks, no async gaps, no flakiness.
 2. **Time travel:** Because `update` is pure, you can replay any sequence of messages and always get the same state. This is how `TimeTravelFeature` works.
 3. **Reasoning:** Looking at `update` tells you *exactly* what happens for every message. No hidden behavior.
-
-<!-- TODO(image): Diagram showing:
-     - "Pure World" box containing update() function with deterministic arrows
-     - "Impure World" box containing effect handlers with wavy/uncertain arrows
-     - Clear boundary line between them labeled "Effects are the only way to cross"
--->
 
 ---
 
@@ -547,10 +409,87 @@ final class SendEmailHandler implements EffectHandler<Effect, Message> {
 
 Now the premium check and retry count logic live in `update` (testable, pure), and the handler just follows instructions.
 
-<!-- TODO(image): Two-column comparison showing:
-     Left: "BAD - Fat Handler" with business logic inside handler box
-     Right: "GOOD - Smart Update, Dumb Handler" with logic in update, thin handler
--->
+---
+
+## Traceability: Why explicit messages matter
+
+One of puer's biggest advantages over simpler patterns is **traceability**. Every state change is caused by a message, and both are recorded in the `transitions` stream.
+
+How does it looks in real world?
+
+### Level 1: Direct mutation
+
+Consider a simple state manager where you call methods directly (like a Cubit):
+
+When your app logs state changes, you see:
+
+```
+Transaction {
+  before: AuthState.authenticated,
+  after: AuthState.unauthenticated
+}
+```
+
+**You know WHAT changed, but not WHY.** Was it a manual logout? A token expiration? You can't tell from the log.
+
+### Level 2: Event-based state management
+
+In event-based patterns (like BLoC), every state change is triggered by an event:
+
+Now your logs show:
+
+```
+Transaction {
+  before: AuthState.authenticated,
+  event: LogoutRequested,
+  after: AuthState.unauthenticated
+}
+```
+
+**You know WHY the state changed**, but side effects (network calls, storage operations) are hidden inside event handlers. If logout fails, you can't see which effects were triggered from the log alone.
+
+### Level 3: The puer approach
+
+In puer, every state change is caused by a message, **and effects are explicit data**:
+
+When you request logout, your logs from `feature.transitions` show:
+
+```
+Transaction {
+  before: AuthState.authenticated,
+  message: LogoutRequested,
+  after: AuthState.loggingOut,
+  effects: [PerformLogout]
+}
+
+Transaction {
+  before: AuthState.loggingOut,
+  message: LogoutSucceeded,
+  after: AuthState.unauthenticated,
+  effects: [CleanData]
+}
+```
+
+**You know exactly WHY each state changed AND what side effects were triggered.** The complete flow is visible:
+1. User requests logout → state becomes "logging out" → logout effect is triggered
+2. Logout completes successfully → state becomes "unauthenticated" → also send effect to clean data
+
+If a bug report says "logout didn't work", you can check the transition log and see:
+- Was `PerformLogout` effect emitted?
+- Did `LogoutSucceeded` message ever arrive?
+- Where in the flow did it fail?
+
+### When traceability matters most
+
+Use explicit messages (puer) over direct mutation or event-based patterns when:
+
+- **Critical state transitions** need audit trails (auth, payments, user data)
+- **Debugging production issues** requires understanding why state changed
+- **Complex flows** have multiple paths to the same state (logged out via timeout vs manual logout)
+- **Time-travel debugging** is valuable for your feature
+- **Effect execution** needs to be visible in logs (not hidden inside handlers)
+
+For simple, local UI state (e.g., "is this menu open?"), direct mutation is fine. For business-critical state, full traceability is worth the cost of defining message types.
 
 ---
 
@@ -967,11 +906,7 @@ void main() {
 
 Effect handlers require mocks for their dependencies (repositories, services), but the handler itself is tested in isolation from `update`.
 
-<!-- TODO(image): Testing pyramid diagram showing:
-     Bottom (largest): Pure update function tests - fast, no mocks, synchronous
-     Middle: Effect handler tests - async, mocks for services
-     Top (smallest): Integration/widget tests - full feature + UI
--->
+![Test pyramid](media/images/test-pyramid.png)
 
 ---
 
