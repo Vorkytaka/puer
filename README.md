@@ -561,7 +561,7 @@ final feature = Feature<UserState, UserMessage, UserEffect>(
 
 This is one of the most underrated patterns in TEA-style architectures, and `puer_effect_handlers` makes it trivial to implement.
 
-And what also cool, is that with those generic handlers you cannot accidentally put business logic into Effect Handlers.
+What's also cool is that with those generic handlers you cannot accidentally put business logic into Effect Handlers.
 
 ---
 
@@ -569,7 +569,7 @@ And what also cool, is that with those generic handlers you cannot accidentally 
 
 One of puer's biggest advantages over simpler patterns is **traceability**. Every state change is caused by a message, and both are recorded in the `transitions` stream.
 
-How does it looks in real world?
+How does it look in the real world?
 
 ### Level 1: Direct mutation
 
@@ -578,7 +578,7 @@ Consider a simple state manager where you call methods directly (like a Cubit):
 When your app logs state changes, you see:
 
 ```
-Transaction {
+Transition {
   before: AuthState.authenticated,
   after: AuthState.unauthenticated
 }
@@ -593,7 +593,7 @@ In event-based patterns (like BLoC), every state change is triggered by an event
 Now your logs show:
 
 ```
-Transaction {
+Transition {
   before: AuthState.authenticated,
   event: LogoutRequested,
   after: AuthState.unauthenticated
@@ -609,14 +609,14 @@ In puer, every state change is caused by a message, **and effects are explicit d
 When you request logout, your logs from `feature.transitions` show:
 
 ```
-Transaction {
+Transition {
   before: AuthState.authenticated,
   message: LogoutRequested,
   after: AuthState.loggingOut,
   effects: [PerformLogout]
 }
 
-Transaction {
+Transition {
   before: AuthState.loggingOut,
   message: LogoutSucceeded,
   after: AuthState.unauthenticated,
