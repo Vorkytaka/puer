@@ -52,8 +52,6 @@ A typical Flutter app depends on `puer` + `puer_flutter` at runtime, adds `puer_
 
 - Your app is small or mostly UI-driven with minimal business logic. The overhead of `Feature` + sealed message types is not worthwhile for a few `setState` calls.
 - Your team is new to Dart and/or Flutter. The Elm Architecture adds conceptual overhead on top of an already steep learning curve.
-- Your project is already deeply invested in BLoC, Riverpod, or another pattern and a migration would outweigh the benefits.
-- You need tight framework integration that another library already provides (e.g. Riverpod's code generation, automatic dependency invalidation, or built-in async state).
 
 ---
 
@@ -65,11 +63,13 @@ Every state change follows the same cycle:
 
 **Data flow cycle:**
 
-1. A widget (or any code) calls `feature.accept(message)`.
-2. `update(currentState, message)` runs **synchronously** and returns a new state and an optional list of effects.
-3. If the state changed, `stateStream` emits and widgets rebuild.
-4. Each effect is forwarded to every registered `EffectHandler`.
-5. Handlers do async work (network, storage, timers) and call `emit(message)` to send new messages **back to the feature** — completing the loop.
+1. **UI sends a Message:** The UI sends a `Message` to the feature when the user interacts with it (`feature.accept(message)`).
+2. **State updates:** The `update` function processes this `Message` alongside the `currentState`, returning:
+   - A new `State` (if it changes).
+   - A list of tasks (`Effects`) to be performed.
+3. **UI updates:** If the state changes, the UI rebuilds to reflect the new state.
+4. **Effects are handled:** `Effects` are passed to `EffectHandler`s, which perform tasks (e.g., API calls).
+5. **Messages are sent back:** When tasks are done, `EffectHandler`s send back `Messages` to continue the cycle.
 
 ---
 
@@ -77,9 +77,9 @@ Every state change follows the same cycle:
 
 | Term | Description | Also known as |
 |---|---|---|
-| `Feature` | The central object that holds state, wires update to handlers, and exposes streams. Must call `init()` before use. | Store, ViewModel |
-| `State` | An immutable value representing the current state of a feature. Should override `==` and `hashCode` for correct rebuild behavior. | Model |
-| `Message` | A value describing something that happened — an event or intent. Use sealed classes for exhaustive switch coverage. | Event, Action, Intent |
+| `Feature` | The central object that holds state, wires update to handlers, and exposes streams. | Store, ViewModel |
+| `State` | An immutable value representing the current state of a feature. | Model |
+| `Message` | A value describing something that happened — an event or intent. | Event, Action, Intent |
 | `Update` | A pure function `(State, Message) → (State?, List<Effect>)`. Must be synchronous and deterministic. | Reducer, Reducer function |
 | `Effect` | A plain data value that describes a side effect to be performed. Contains no logic, only data. | Command, SideEffect |
 | `EffectHandler` | An object that receives an `Effect`, performs async work, and optionally emits new messages. Should be "stupid" — no business logic. | Middleware, Executor, Command handler |
@@ -105,7 +105,7 @@ When your state, messages, and effects are plain data classes:
 
 4. **Testable without mocks.** Testing `update(state, message)` requires nothing but two plain objects. No dependency injection, no test doubles, no async coordination.
 
-5. **Portable across platforms.** The same state/message/effect types can be shared between Flutter, Dart CLI tools, backend services, and even other languages (via JSON schemas).
+5. **Portable across platforms.** The same state/message/effect types can be shared between Flutter, Dart CLI tools, backend services, and even other languages (e.g. via JSON schemas).
 
 ### What "just data" means in practice
 
@@ -192,7 +192,7 @@ final class AuthenticateUser extends AuthEffect {
 }
 ```
 
-**The rule:** If you can't easily serialize it to JSON, it's not "just data". Move the logic to `update` (for business rules) or `EffectHandler` (for execution).
+**The tip:** If you can't easily serialize it to JSON, it's not "just data". Move the logic to `update` (for business rules) or `EffectHandler` (for execution).
 
 ---
 
@@ -276,7 +276,7 @@ final class FetchDataHandler implements EffectHandler<Effect, Message> {
 ### Why this matters
 
 1. **Testing:** You can test every state transition with a single synchronous function call. No mocks, no async gaps, no flakiness.
-2. **Time travel:** Because `update` is pure, you can replay any sequence of messages and always get the same state. This is how `TimeTravelFeature` works.
+2. **Restorable:** Because `update` is pure, you can replay any sequence of messages and always get the same state. This is how `TimeTravelFeature` works.
 3. **Reasoning:** Looking at `update` tells you *exactly* what happens for every message. No hidden behavior.
 
 ---
@@ -453,6 +453,7 @@ final feature = Feature<State, Message, Effect>(
 ```
 
 Use this package as a base and create your own transformers.
+Or bring some good reusable ones into here by creating Pull Request. :)
 
 ---
 
@@ -559,6 +560,8 @@ final feature = Feature<UserState, UserMessage, UserEffect>(
 - File I/O handlers adapted to save/load specific domain objects
 
 This is one of the most underrated patterns in TEA-style architectures, and `puer_effect_handlers` makes it trivial to implement.
+
+And what also cool, is that with those generic handlers you cannot accidentally put business logic into Effect Handlers.
 
 ---
 
