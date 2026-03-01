@@ -38,21 +38,6 @@ A typical Flutter app depends on `puer` + `puer_flutter` at runtime, adds `puer_
 
 ---
 
-## How does puer compare?
-
-| | **Puer** | **BLoC** | **Riverpod** | **Provider** |
-|---|---|---|---|---|
-| **Architecture** | TEA / MVI — explicit message loop | BLoC pattern / reactive streams | Providers + notifiers | InheritedWidget wrapper |
-| **Business logic lives in** | Pure `update` function | `Bloc.onEvent` / `EventHandler` | `Notifier` / `AsyncNotifier` | `ChangeNotifier` methods |
-| **Side effects** | Explicit `Effect` values routed to `EffectHandler`s | Inside event handlers (async code in bloc) | Inside notifier methods or `ref.listen` | Inside `ChangeNotifier` methods |
-| **Testability** | Very high — pure function, no test doubles needed for logic | Good — `bloc_test` library helps | Good — `ProviderContainer` isolation | Moderate — requires widget or notifier setup |
-| **Boilerplate** | Medium — sealed classes + update function + handlers | Medium-high — events, states, bloc class | Low-medium — provider + notifier | Low — single `ChangeNotifier` class |
-| **Time-travel** | Built-in via `puer_time_travel` + DevTools extension | Not built-in | Not built-in | Not built-in |
-
-The table reflects general usage patterns; every library can be pushed toward stricter or looser styles depending on how it is used.
-
----
-
 ## When should you use puer?
 
 **Puer is a good fit when:**
