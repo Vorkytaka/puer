@@ -411,6 +411,172 @@ Now the premium check and retry count logic live in `update` (testable, pure), a
 
 ---
 
+### Multiple handlers per feature
+
+A `Feature` accepts a **list** of effect handlers, not just one. You can (and often should) register multiple handlers that each focus on a specific concern.
+
+**Example: feature with multiple handlers**
+
+```dart
+final feature = Feature<State, Message, Effect>(
+  initialState: initialState,
+  update: update,
+  effectHandlers: [
+    HttpEffectHandler(httpClient),        // Handles HTTP effects
+    StorageEffectHandler(storage),        // Handles storage effects
+    NavigationEffectHandler(navigator),   // Handles navigation effects
+  ],
+);
+```
+
+**How it works:** When an effect is emitted from `update`, the `Feature` forwards it to **every registered handler**. Each handler inspects the effect and decides whether to process it (typically with a `switch` or type check). Handlers that don't recognize the effect simply ignore it.
+
+**Benefits of multiple handlers:**
+- **Separation of concerns**: HTTP logic lives in one place, storage in another, navigation in a third
+- **Independent testing**: test each handler in isolation
+- **Reusability**: the same `HttpEffectHandler` can be reused across multiple features (see The adapter pattern below to know how)
+
+---
+
+### Composable handler wrappers
+
+The `puer_effect_handlers` package provides **wrapper handlers** that add behavior to existing handlers without modifying them. These wrappers implement the decorator pattern and can be chained via extension methods.
+
+**Available wrappers:**
+
+| Wrapper | Purpose | Use case |
+|---|---|---|
+| `DebounceEffectHandler` | Delays effect execution, canceling previous invocations if new effects arrive | Debounce search queries, user input |
+| `SequentialEffectHandler` | Queues effects and processes them one at a time | Ensure ordered execution for shared resources |
+| `IsolateEffectHandler` | Offloads effect execution to a separate isolate | Heavy computation without blocking the UI thread |
+| `AdaptEffectHandler` | Maps effect and message types for reusable generic handlers | Adapt a universal `HttpHandler` to feature-specific types |
+
+**Example: debounce + run in another isolate execution**
+
+```dart
+import 'package:puer_effect_handlers/puer_effect_handlers.dart';
+
+final feature = Feature<State, Message, Effect>(
+  initialState: initialState,
+  update: update,
+  effectHandlers: [
+    MyEffectHandler(service)
+      .isolated()
+      .debounced(Duration(milliseconds: 300)),
+  ],
+);
+```
+
+Use this package as a base and create your own transformers.
+
+---
+
+### The adapter pattern: reusable generic handlers
+
+One of the most powerful patterns in puer is writing **generic, reusable handlers** that operate on simple, universal types (like `HttpRequest`/`HttpResponse`, `DbQuery`/`DbResult`), and then **adapting** them to feature-specific effect and message types.
+
+**The problem:** Without adapters, every feature needs its own handler, even if the underlying work (HTTP call, database query, etc.) is identical.
+
+**The solution:** Write the handler once for generic types, then use `AdaptEffectHandler` to map your feature's types to the generic types.
+
+**Example: reusable HTTP handler**
+
+```dart
+// Step 1: Define generic HTTP types (shared across all features)
+sealed class HttpEffect {}
+final class HttpGet extends HttpEffect {
+  const HttpGet(this.url);
+  final String url;
+}
+
+sealed class HttpMessage {}
+final class HttpSuccess extends HttpMessage {
+  const HttpSuccess(this.body);
+  final String body;
+}
+final class HttpFailure extends HttpMessage {
+  const HttpFailure(this.error);
+  final String error;
+}
+
+// Step 2: Write a generic HTTP handler (write once, reuse everywhere)
+final class HttpEffectHandler 
+    implements EffectHandler<HttpEffect, HttpMessage> {
+  const HttpEffectHandler(this._client);
+  final HttpClient _client;
+
+  @override
+  Future<void> call(HttpEffect effect, MsgEmitter<HttpMessage> emit) async {
+    switch (effect) {
+      case HttpGet(:final url):
+        try {
+          final response = await _client.get(url);
+          emit(HttpSuccess(response.body));
+        } on Exception catch (e) {
+          emit(HttpFailure(e.toString()));
+        }
+    }
+  }
+}
+
+// Step 3: Adapt it to feature-specific types
+sealed class UserEffect {}
+final class LoadUser extends UserEffect {
+  const LoadUser(this.userId);
+  final String userId;
+}
+
+sealed class UserMessage {}
+final class UserLoaded extends UserMessage {
+  const UserLoaded(this.user);
+  final User user;
+}
+final class UserLoadFailed extends UserMessage {
+  const UserLoadFailed(this.error);
+  final String error;
+}
+
+// Adapter: maps UserEffect → HttpEffect and HttpMessage → UserMessage
+final userHandler = HttpEffectHandler(httpClient).adapt(
+  effectMapper: (UserEffect effect) {
+    // Convert UserEffect → HttpEffect
+    return switch (effect) {
+      LoadUser(:final userId) => HttpGet('https://api.example.com/users/$userId'),
+    };
+  },
+  messageMapper: (HttpMessage message) {
+    // Convert HttpMessage → UserMessage
+    return switch (message) {
+      HttpSuccess(:final body) => UserLoaded(User.fromJson(body)),
+      HttpFailure(:final error) => UserLoadFailed(error),
+    };
+  },
+);
+
+// Use the adapted handler in your feature
+final feature = Feature<UserState, UserMessage, UserEffect>(
+  initialState: initialState,
+  update: userUpdate,
+  effectHandlers: [userHandler],
+);
+```
+
+**Why this pattern is powerful:**
+- **Write once, reuse everywhere**: one `HttpEffectHandler`, adapted to every feature that needs HTTP
+- **Testability**: test the generic handler once, then test only the mapping functions for each feature
+- **Separation of concerns**: HTTP logic is completely separate from domain logic (user loading, product fetching, etc.)
+- **True Elm Architecture style**: effects are pure data, execution is generic and reusable
+
+**Use cases:**
+- HTTP handlers (GET, POST, etc.) adapted to domain-specific effects
+- Database query handlers adapted to feature-specific query effects
+- Random number generators adapted to features that need randomness
+- File I/O handlers adapted to save/load specific domain objects
+
+This is one of the most underrated patterns in TEA-style architectures, and `puer_effect_handlers` makes it trivial to implement.
+
+---
+
 ## Traceability: Why explicit messages matter
 
 One of puer's biggest advantages over simpler patterns is **traceability**. Every state change is caused by a message, and both are recorded in the `transitions` stream.
@@ -488,6 +654,7 @@ Use explicit messages (puer) over direct mutation or event-based patterns when:
 - **Complex flows** have multiple paths to the same state (logged out via timeout vs manual logout)
 - **Time-travel debugging** is valuable for your feature
 - **Effect execution** needs to be visible in logs (not hidden inside handlers)
+- **Analytics** is perfectly handled by traceability. Just listen for exact transaction and send events.
 
 For simple, local UI state (e.g., "is this menu open?"), direct mutation is fine. For business-critical state, full traceability is worth the cost of defining message types.
 
