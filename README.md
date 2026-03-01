@@ -38,115 +38,88 @@ This separation eliminates entire classes of bugs. Your state transitions are de
 
 ## Traceability: Why explicit messages matter
 
-One of puer's biggest advantages over simpler patterns (like directly mutating state via methods) is **traceability**. Every state change is caused by a message, and both are recorded in the `transitions` stream.
+One of puer's biggest advantages over simpler patterns is **traceability**. Every state change is caused by a message, and both are recorded in the `transitions` stream.
 
-### The problem with direct mutation
+How does it looks in real world?
 
-Consider a simple state manager where you call methods directly:
+### Level 1: Direct mutation
 
-```dart
-class AuthNotifier extends ChangeNotifier {
-  AuthStatus _status = AuthStatus.unauthenticated;
-  
-  void logout() {
-    _status = AuthStatus.unauthenticated;
-    notifyListeners();
-  }
-}
-```
+Consider a simple state manager where you call methods directly (like a Cubit):
 
 When your app logs state changes, you see:
 
 ```
-Change {
-  before: AuthStatus.authenticated,
-  after: AuthStatus.unauthenticated
+Transaction {
+  before: AuthState.authenticated,
+  after: AuthState.unauthenticated
 }
 ```
 
-**You know WHAT changed, but not WHY.** Was it a manual logout? A token expiration? A force-logout from the server? A network error? You can't tell from the log.
+**You know WHAT changed, but not WHY.** Was it a manual logout? A token expiration? You can't tell from the log.
 
-### The puer approach: explicit messages
+### Level 2: Event-based state management
 
-In puer, every state change is caused by a message:
+In event-based patterns (like BLoC), every state change is triggered by an event:
 
-```dart
-sealed class AuthMessage {}
-final class LogoutRequested extends AuthMessage {}
-final class TokenExpired extends AuthMessage {}
-final class ForceLogoutReceived extends AuthMessage {}
-final class NetworkError extends AuthMessage {}
+Now your logs show:
 
-Next<AuthState, AuthEffect> authUpdate(AuthState state, AuthMessage msg) {
-  return switch (msg) {
-    LogoutRequested() => next(
-      state: const AuthState.unauthenticated(),
-      effects: [ClearStoredToken()],
-    ),
-    TokenExpired() => next(
-      state: const AuthState.unauthenticated(),
-      effects: [LogAnalyticsEvent('token_expired')],
-    ),
-    ForceLogoutReceived() => next(
-      state: const AuthState.unauthenticated(),
-      effects: [ShowNotification('You have been logged out')],
-    ),
-    // ...
-  };
+```
+Transaction {
+  before: AuthState.authenticated,
+  event: LogoutRequested,
+  after: AuthState.unauthenticated
 }
 ```
 
-Now your logs from `feature.transitions` look like:
+**You know WHY the state changed**, but side effects (network calls, storage operations) are hidden inside event handlers. If logout fails, you can't see which effects were triggered from the log alone.
+
+### Level 3: The puer approach
+
+In puer, every state change is caused by a message, **and effects are explicit data**:
+
+When you request logout, your logs from `feature.transitions` show:
 
 ```
-Transition {
-  stateBefore: AuthState.authenticated,
-  message: TokenExpired(),
-  stateAfter: AuthState.unauthenticated,
-  effects: [LogAnalyticsEvent('token_expired')]
+Transaction {
+  before: AuthState.authenticated,
+  message: LogoutRequested,
+  after: AuthState.loggingOut,
+  effects: [PerformLogout]
+}
+
+Transaction {
+  before: AuthState.loggingOut,
+  message: LogoutSucceeded,
+  after: AuthState.unauthenticated,
+  effects: [CleanData]
 }
 ```
 
-**You know exactly WHY the state changed.** This is critical for:
-- Debugging production issues from user logs
-- Understanding user behavior patterns
-- Reproducing bugs by replaying message sequences
-- Time-travel debugging
+**You know exactly WHY each state changed AND what side effects were triggered.** The complete flow is visible:
+1. User requests logout → state becomes "logging out" → logout effect is triggered
+2. Logout completes successfully → state becomes "unauthenticated" → also send effect to clean data 
 
-### Traceability extends to effects
-
-Unlike BLoC (where side effects are hidden inside event handlers), puer makes **effects traceable too**. Every effect is visible in the transition:
-
-```
-Transition {
-  stateBefore: AuthState.authenticated,
-  message: LogoutRequested(),
-  stateAfter: AuthState.unauthenticated,
-  effects: [
-    ClearStoredToken(),
-    RevokeDeviceToken(),
-    NavigateToLoginScreen()
-  ]
-}
-```
-
-You can see not only what happened to the state, but what side effects were triggered. If a bug report says "logout didn't clear my saved password", you can check the transition log and see whether `ClearStoredToken()` was even emitted.
+If a bug report says "logout didn't work", you can check the transition log and see:
+- Was `PerformLogout` effect emitted?
+- Did `LogoutSucceeded` message ever arrive?
+- Where in the flow did it fail?
 
 ### When traceability matters most
 
-Use explicit messages (puer) over direct mutation (ChangeNotifier/ValueNotifier) when:
+Use explicit messages (puer) over direct mutation or event-based patterns when:
 
 - **Critical state transitions** need audit trails (auth, payments, user data)
 - **Debugging production issues** requires understanding why state changed
 - **Complex flows** have multiple paths to the same state (logged out via timeout vs manual logout)
 - **Time-travel debugging** is valuable for your feature
-- **Analytics and monitoring** need to track user actions, not just state snapshots
+- **Effect execution** needs to be visible in logs (not hidden inside handlers)
 
-For simple, local UI state (e.g., "is this menu open?"), direct mutation is fine. For business-critical state, traceability is worth the cost of defining message types.
+For simple, local UI state (e.g., "is this menu open?"), direct mutation is fine. For business-critical state, full traceability is worth the cost of defining message types.
 
-<!-- TODO(image): Side-by-side comparison showing:
-     Left: "Direct Mutation" with Change { before, after } - missing the "why"
-     Right: "Explicit Messages" with Transition { before, message, after, effects } - complete picture
+<!-- TODO(image): Three-column comparison showing:
+     Left: "Direct Mutation" with Transaction { before, after } - missing the "why"
+     Middle: "Event-Based" with Transaction { before, event, after } - missing side effects
+     Right: "Puer" with two Transactions showing complete flow with messages and effects
 -->
 
 ---
