@@ -1,7 +1,7 @@
 # Puer
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/Vorkytaka/puer/master/media/images/logo.png" height="100" alt="Puer" />
+<img src="https://raw.githubusercontent.com/Vorkytaka/puer/master/media/images/logo.png" height="200" alt="Puer" />
 </p>
 
 <p align="center">
