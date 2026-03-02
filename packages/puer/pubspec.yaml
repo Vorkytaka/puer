@@ -2,7 +2,7 @@ name: puer
 description: A clean and predictable state management solution inspired by The Elm Architecture.
 version: 1.0.0-alpha.1
 
-repository: https://github.com/Vorkytaka/puer
+repository: https://github.com/Vorkytaka/puer/tree/master/packages/puer
 issue_tracker: https://github.com/Vorkytaka/puer/issues
 homepage: https://github.com/Vorkytaka/puer
 topics:
