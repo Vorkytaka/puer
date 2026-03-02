@@ -213,7 +213,6 @@ Transition {
 
 - **[Full documentation](https://github.com/Vorkytaka/puer)** — Architecture guide, patterns, best practices
 - **[The Elm Architecture](https://guide.elm-lang.org/architecture/)** — The pattern puer is based on
-- **[Examples](https://github.com/Vorkytaka/puer/tree/master/examples)** — Counter, todos, async flows
 
 ---
 
