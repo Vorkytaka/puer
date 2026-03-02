@@ -2,6 +2,7 @@
 
 import 'dart:async';
 
+import 'package:meta/meta.dart';
 import 'package:puer/puer.dart';
 
 // ==============================================================================
@@ -9,6 +10,7 @@ import 'package:puer/puer.dart';
 // ==============================================================================
 
 /// Represents the current state of our counter feature.
+@immutable
 final class CounterState {
   const CounterState({
     required this.count,
