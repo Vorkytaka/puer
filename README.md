@@ -4,7 +4,9 @@ A reactive, functional state management library for Dart and Flutter, built on T
 
 **The Elm Architecture (TEA)** is a functional programming pattern where state updates are pure functions and side effects are represented as explicit data. Puer brings this mental model to Dart and Flutter, enforcing a strict separation between logic (testable, pure) and execution (controlled, traceable).
 
-![Puer logo](media/images/logo.png)
+<p align="center">
+<img src="https://raw.githubusercontent.com/Vorkytaka/puer/master/media/images/logo.png" height="200" alt="Puer" />
+</p>
 
 ---
 
@@ -59,7 +61,9 @@ A typical Flutter app depends on `puer` + `puer_flutter` at runtime, adds `puer_
 
 Every state change follows the same cycle:
 
-![Data-flow](media/images/data-flow.png)
+<p align="center">
+<img src="https://raw.githubusercontent.com/Vorkytaka/puer/master/media/images/data-flow.png" width="600" alt="Data Flow" />
+</p>
 
 **Data flow cycle:**
 
