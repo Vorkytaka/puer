@@ -499,14 +499,15 @@ Wrappers are designed to compose naturally. Chain them via extension methods to 
 
 ```dart
 myHandler
-  .debounced(Duration(milliseconds: 300))  // First: debounce
-  .sequential()                            // Then: ensure sequential execution
-  .isolated()                              // Finally: run in isolate
+  .debounced(Duration(milliseconds: 300))  // Inner: debounce
+  .sequential()                            // Middle: sequential
+  .isolated()                              // Outer: isolate
 ```
 
 **Order matters:**
-- Debounce → Sequential → Isolate means: debounce first, then queue, then offload to isolate
-- Sequential → Debounce means: queue first, then debounce each queued effect (rarely useful)
+- Each extension returns a handler that *wraps* the previous one. The last wrapper you call becomes the outermost at runtime and runs first.
+- Example: `.debounced().sequential().isolated()` builds `Isolate(Sequential(Debounce(myHandler)))` so effects flow at runtime as: **Isolate → Sequential → Debounce → myHandler**.
+- Conversely, `.sequential().debounced()` builds `Debounce(Sequential(myHandler))`, so runtime order is **Debounce → Sequential → myHandler**.
 
 ### Example: Search handler with full composition
 
@@ -527,9 +528,9 @@ final feature = Feature<SearchState, SearchMessage, SearchEffect>(
 ```
 
 **What this does:**
-1. Adapts generic HTTP handler to search feature types
-2. Debounces search requests (only execute if user stops typing for 300ms)
-3. Ensures sequential execution (if multiple searches somehow trigger, process them one by one)
+1. Adapts the generic HTTP handler to search feature types
+2. Wraps the adapted handler with `Debounce` (inner) and then `Sequential` (outer)
+3. At runtime the chain becomes `Sequential(Debounce(Adapt(SearchHandler)))`, so effects are processed by **Sequential → Debounce → Adapt → SearchHandler**. In short: the last wrapper called (`.sequential()`) runs first at runtime.
 
 ---
 
@@ -619,14 +620,15 @@ final class MyFeatureHandler implements EffectHandler<MyEffect, MyMessage> {
 
 ### 2. Order wrappers intentionally
 
-The order of wrappers changes behavior. Think through the execution flow:
+The order of wrappers changes behavior because wrappers are nested. The last wrapper in your chain is the outermost and runs first at runtime. Think through the execution flow:
 
 ```dart
-// Debounce → Sequential: debounce first, then queue
-myHandler.debounced(...).sequential()
+// Chain call order (left-to-right) vs runtime order (outer-to-inner):
+// myHandler.debounced(...).sequential()  => Sequential(Debounce(myHandler))
+// runtime: Sequential -> Debounce -> myHandler
 
-// Sequential → Debounce: queue first, then debounce each (rarely useful)
-myHandler.sequential().debounced(...)
+// myHandler.sequential().debounced()  => Debounce(Sequential(myHandler))
+// runtime: Debounce -> Sequential -> myHandler
 ```
 
 ### 3. Use extension methods for clarity
@@ -688,25 +690,6 @@ test('Debounced handler cancels previous effects', () async {
   verifyNever(() => mockService.search('fl'));
 });
 ```
-
----
-
-## When NOT to Use These Wrappers
-
-**Debouncing:**
-- Don't debounce critical operations (payments, auth) where every invocation matters
-- Don't debounce when immediate feedback is essential
-
-**Sequential:**
-- Don't force sequential execution when effects are independent (unnecessarily slow)
-- Don't use for read-only operations that can safely run in parallel
-
-**Isolate:**
-- Don't offload lightweight operations (isolate spawn overhead exceeds benefit)
-- Don't use when effects contain non-transferable types (closures, Flutter widgets)
-
-**Adapt:**
-- Don't use adapters when the handler is already feature-specific (unnecessary indirection)
 
 ---
 
