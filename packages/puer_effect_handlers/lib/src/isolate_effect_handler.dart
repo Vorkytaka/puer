@@ -18,7 +18,7 @@ extension IsolateEffectHandlerExt<Effect, Message>
   ///
   /// Example:
   /// ```dart
-  /// final handler = MyEffectHandler().isolate();
+  /// final handler = MyEffectHandler().isolated();
   /// ```
   ///
   /// See also:
@@ -52,7 +52,7 @@ extension IsolateEffectHandlerExt<Effect, Message>
 ///
 /// ### Note:
 /// - Each effect is processed in its own isolate, which is spawned and terminated automatically.
-/// - Because of how isolate works you should be careful, not all object can be send. See [SendPort] docs.
+/// - Because of how isolates work, be careful: not all objects can be sent. See [SendPort] docs.
 @experimental
 final class IsolateEffectHandler<Effect, Message>
     implements EffectHandler<Effect, Message> {
@@ -87,7 +87,7 @@ final class IsolateEffectHandler<Effect, Message>
   ///
   /// This method:
   /// 1. Creates a [ReceivePort] to receive messages from the isolate.
-  /// 2. Spawns a new isolate and passes the effect, [handle], and a [SendPort].
+  /// 2. Spawns a new isolate and passes the effect, the handler's `call` function, and a [SendPort].
   /// 3. Listens for messages or the completion signal from the isolate.
   @override
   Future<void> call(Effect effect, MsgEmitter<Message> emit) async {
@@ -112,7 +112,7 @@ final class IsolateEffectHandler<Effect, Message>
   /// The function executed within the isolate.
   ///
   /// This function:
-  /// - Executes the [handle] method provided by the handler.
+  /// - Executes the provided handler function (`call`).
   /// - Emits messages or a completion signal back to the main isolate.
   static Future<void> _runInIsolate<Effect, Message>(
     _IsolateParams<Effect, Message> params,
