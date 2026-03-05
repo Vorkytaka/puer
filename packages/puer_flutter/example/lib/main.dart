@@ -66,9 +66,15 @@ final class CounterState {
 }
 
 Next<CounterState, CounterEffect> counterUpdate(
-    CounterState state, CounterMessage msg) {
+  CounterState state,
+  CounterMessage msg,
+) {
   if (msg is Increment) {
-    return next(state: CounterState(count: state.count + 1));
+    return next(
+      state: CounterState(
+        count: state.count + 1,
+      ),
+    );
   }
   return next();
 }
