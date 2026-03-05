@@ -44,7 +44,7 @@ import 'package:puer/puer.dart';
 import 'package:puer_flutter/puer_flutter.dart';
 
 // Your feature types
-typedef CounterFeature = Feature<CounterState, CounterMessage, Never>;
+typedef CounterFeature = Feature<CounterState, CounterMessage, CounterEffect>;
 
 void main() {
   runApp(const MyApp());
@@ -57,7 +57,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: FeatureProvider<CounterFeature>.create(
-        create: (context) => Feature<CounterState, CounterMessage, Never>(
+        create: (context) => Feature<CounterState, CounterMessage, CounterEffect>(
           initialState: const CounterState(count: 0),
           update: counterUpdate,
         ),
@@ -108,7 +108,7 @@ class CounterPage extends StatelessWidget {
 
 ```dart
 FeatureProvider<CounterFeature>.create(
-  create: (context) => Feature<CounterState, CounterMessage, Never>(
+  create: (context) => Feature<CounterState, CounterMessage, CounterEffect>(
     initialState: const CounterState(count: 0),
     update: counterUpdate,
   ),
@@ -119,7 +119,7 @@ FeatureProvider<CounterFeature>.create(
 **Value mode** — Provides an existing feature:
 
 ```dart
-final feature = Feature<CounterState, CounterMessage, Never>(
+final feature = Feature<CounterState, CounterMessage, CounterEffect>(
   initialState: const CounterState(count: 0),
   update: counterUpdate,
 );
@@ -136,13 +136,6 @@ FeatureProvider<CounterFeature>.value(
 final feature = FeatureProvider.of<CounterFeature>(context);
 feature.accept(Increment());
 ```
-
-#### Parameters
-
-- **`create`** (create mode): Factory function to create the feature
-- **`value`** (value mode): Existing feature instance
-- **`child`**: Widget subtree that has access to the feature
-- **`lazy`**: If `true`, delays feature creation until first access (default: `false`)
 
 #### Lifecycle
 
@@ -192,12 +185,6 @@ FeatureBuilder<CounterFeature, CounterState>(
 )
 ```
 
-#### Parameters
-
-- **`builder`** (required): Function that builds UI from state — `(BuildContext, State) → Widget`
-- **`feature`**: Custom feature instance (if `null`, resolves from `FeatureProvider`)
-- **`buildWhen`**: Optional filter — `(previous, current) → bool`. If returns `false`, UI won't rebuild
-
 ---
 
 ### 3. FeatureListener
@@ -238,13 +225,6 @@ FeatureListener<TodoFeature, TodoState>(
 )
 ```
 
-#### Parameters
-
-- **`listener`** (required): Callback invoked on state changes — `(BuildContext, State) → void`
-- **`child`** (required): Widget to render
-- **`feature`**: Custom feature instance (if `null`, resolves from `FeatureProvider`)
-- **`listenWhen`**: Optional filter — `(previous, current) → bool`. If returns `false`, listener won't be called
-
 #### Common Use Cases
 
 - **Navigation**: Push/pop routes when state changes
@@ -283,15 +263,27 @@ FeatureSelector<UserFeature, UserState, UserProfile?>(
 )
 ```
 
-#### Parameters
-
-- **`selector`** (required): Function that extracts a value from state — `(State) → T`
-- **`builder`** (required): Function that builds UI from selected value — `(BuildContext, T) → Widget`
-- **`feature`**: Custom feature instance (if `null`, resolves from `FeatureProvider`)
-
 #### Why use FeatureSelector?
 
-**Without FeatureSelector:**
+Consider a small `TodoState` with several independent fields — UI that displays only the completed count should not rebuild when unrelated fields change:
+
+```dart
+final class TodoState {
+  const TodoState({
+    required this.todos,
+    required this.completedCount,
+    required this.isLoading,
+    this.error,
+  });
+
+  final List<String> todos;
+  final int completedCount;
+  final bool isLoading;
+  final String? error;
+}
+```
+
+Without FeatureSelector (using `FeatureBuilder`) the widget rebuilds when ANY field on `TodoState` changes:
 
 ```dart
 FeatureBuilder<TodoFeature, TodoState>(
@@ -299,10 +291,10 @@ FeatureBuilder<TodoFeature, TodoState>(
     return Text('Completed: ${state.completedCount}');
   },
 )
-// Rebuilds whenever ANY part of TodoState changes
+// Rebuilds whenever ANY part of TodoState changes (todos, isLoading, error, etc.)
 ```
 
-**With FeatureSelector:**
+With FeatureSelector you pick a specific field — here `completedCount` — so the widget rebuilds only when that value changes:
 
 ```dart
 FeatureSelector<TodoFeature, TodoState, int>(
@@ -350,12 +342,6 @@ FeatureEffectListener<TodoFeature, TodoEffect, ShowSuccessMessage>(
   ),
 )
 ```
-
-#### Parameters
-
-- **`listener`** (required): Callback invoked when effect is emitted — `(BuildContext, Effect) → void`
-- **`child`** (required): Widget to render
-- **`feature`**: Custom feature instance (if `null`, resolves from `FeatureProvider`)
 
 #### When to use EffectHandler vs FeatureEffectListener
 
@@ -472,23 +458,10 @@ FeatureSelector<UserFeature, UserState, String>(
 Navigation, dialogs, and snackbars should be handled in the UI layer, not in `EffectHandler`:
 
 ```dart
-// ❌ BAD: Navigation in EffectHandler
-final class NavigateHandler implements EffectHandler<Effect, Message> {
-  const NavigateHandler(this._navigator);  // ❌ Passing BuildContext/Navigator is awkward
-  
-  @override
-  Future<void> call(Effect effect, MsgEmitter<Message> emit) async {
-    switch (effect) {
-      case NavigateToHome():
-        _navigator.pushNamed('/home');  // ❌ Hard to test
-    }
-  }
-}
-
 // ✅ GOOD: Navigation in FeatureEffectListener
 FeatureEffectListener<MyFeature, MyEffect, NavigateToHome>(
   listener: (context, effect) {
-    Navigator.of(context).pushNamed('/home');  // ✅ Simple, testable state logic
+    Navigator.of(context).pushNamed('/home');
   },
   child: const MyWidget(),
 )
@@ -502,7 +475,6 @@ When you need to respond to state changes without rebuilding UI:
 FeatureListener<AuthFeature, AuthState>(
   listener: (context, state) {
     if (state.isAuthenticated) {
-      // This runs once when isAuthenticated becomes true
       Navigator.of(context).pushReplacementNamed('/home');
     }
   },
