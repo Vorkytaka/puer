@@ -1,0 +1,25 @@
+* text=auto eol=lf
+
+*.dart  text
+*.kt    text
+*.kts   text
+*.java  text
+*.gradle text
+*.xml   text
+*.json  text
+*.yaml  text
+*.yml   text
+*.md    text
+*.txt   text
+
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.pdf   binary
+*.ttf   binary
+*.otf   binary
+*.jar   binary
+*.keystore binary
