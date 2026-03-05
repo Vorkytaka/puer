@@ -1,10 +1,12 @@
 // ignore_for_file: unused_local_variable
 
+import 'package:meta/meta.dart';
 import 'package:puer/puer.dart';
 import 'package:puer_test/puer_test.dart';
 import 'package:test/test.dart';
 
 // Counter domain types
+@immutable
 final class CounterState {
   const CounterState({required this.count});
 
@@ -33,6 +35,7 @@ sealed class CounterEffect {
   const CounterEffect();
 }
 
+@immutable
 final class SaveCount extends CounterEffect {
   const SaveCount(this.count);
 
