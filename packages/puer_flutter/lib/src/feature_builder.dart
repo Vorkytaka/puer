@@ -79,8 +79,10 @@ class _FeatureBuilderState<F extends Feature<S, dynamic, dynamic>, S>
   @override
   void didUpdateWidget(covariant FeatureBuilder<F, S> oldWidget) {
     super.didUpdateWidget(oldWidget);
+
     final oldFeature = oldWidget.feature ?? FeatureProvider.of<F>(context);
     final feature = widget.feature ?? oldFeature;
+
     if (oldFeature != feature) {
       _feature = feature;
       _state = _feature.state;
@@ -90,6 +92,7 @@ class _FeatureBuilderState<F extends Feature<S, dynamic, dynamic>, S>
   @override
   Widget build(BuildContext context) {
     return FeatureListener<F, S>(
+      feature: _feature,
       listener: (context, state) => setState(() => _state = state),
       listenWhen: widget.buildWhen,
       child: widget.builder(context, _state),
