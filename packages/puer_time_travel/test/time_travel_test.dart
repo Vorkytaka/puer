@@ -1,5 +1,5 @@
 import 'package:puer/puer.dart';
-import 'package:puer_time_travel/time_travel.dart';
+import 'package:puer_time_travel/puer_time_travel.dart';
 import 'package:test/test.dart';
 
 // ---------------------------------------------------------------------------

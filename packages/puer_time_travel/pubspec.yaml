@@ -11,8 +11,6 @@ topics:
   - unidirectional-data-flow
   - mvi
   - time-travel
-  - tea
-  - puer
 
 environment:
   sdk: ^3.6.0
