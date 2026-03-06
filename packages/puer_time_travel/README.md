@@ -90,7 +90,7 @@ Unlike external time-travel tools that require custom instrumentation, browser e
 # pubspec.yaml
 dependencies:
   puer: ^1.0.0-alpha.1
-  puer_time_travel: ^1.0.0-alpha.1
+  puer_time_travel: ^1.0.0-alpha.2
 ```
 
 ### 2. Replace `Feature` with `TimeTravelFeature`

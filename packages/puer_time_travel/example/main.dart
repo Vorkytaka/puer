@@ -63,7 +63,7 @@ void main() async {
   await feature.init();
 
   // Get the controller
-  final controller = TimeTravelController.global;
+  final controller = TimeTravelController();
 
   // Simulate user interactions
   print('Performing operations:');
