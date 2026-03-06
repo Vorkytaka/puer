@@ -1,8 +1,8 @@
 name: puer_time_travel
-description: TODO
-version: 1.0.0-alpha.1
+description: Drop-in time-travel debugging for puer. Record every message and state snapshot, then step backward and forward through history using Flutter DevTools extension.
+version: 1.0.0-alpha.2
 
-repository: https://github.com/Vorkytaka/puer/tree/master/packages/puer_test
+repository: https://github.com/Vorkytaka/puer/tree/master/packages/puer_time_travel
 issue_tracker: https://github.com/Vorkytaka/puer/issues
 homepage: https://github.com/Vorkytaka/puer
 topics:
