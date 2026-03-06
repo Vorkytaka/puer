@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:puer/puer.dart';
 import 'package:puer_flutter/puer_flutter.dart';
 
 typedef CounterFeature = Feature<CounterState, CounterMessage, CounterEffect>;

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:puer_flutter/puer_flutter.dart';
 
 import '../domain/counter_feature.dart';
