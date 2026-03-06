@@ -30,9 +30,10 @@ Add `puer_flutter` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  puer: ^1.0.0-alpha.1
   puer_flutter: ^1.0.0-alpha.1
 ```
+
+**Note:** `puer_flutter` re-exports the core `puer` package, so you only need this single dependency.
 
 ---
 
@@ -40,7 +41,6 @@ dependencies:
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:puer/puer.dart';
 import 'package:puer_flutter/puer_flutter.dart';
 
 // Your feature types
