@@ -134,10 +134,10 @@ class _FeatureListenerState<F extends Feature<S, dynamic, dynamic>, S>
 
   void _subscribe() {
     _subscription = _feature.stateStream.listen((state) {
-      if (widget.listenWhen?.call(_previousState, state) ?? true) {
-        if (mounted) {
-          widget.listener(context, state);
-        }
+      if (mounted &&
+          state != _previousState &&
+          (widget.listenWhen?.call(_previousState, state) ?? true)) {
+        widget.listener(context, state);
       }
       _previousState = state;
     });
