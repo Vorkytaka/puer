@@ -16,6 +16,8 @@ A drop-in time-travel debugging extension for [puer](https://pub.dev/packages/pu
 
 Record every message and state snapshot automatically. Step backward and forward through your app's history using a dedicated Flutter DevTools extension — no extra code required.
 
+[![Watch the video](https://img.youtube.com/vi/AfpMZ41qEx4/maxresdefault.jpg)](https://youtu.be/AfpMZ41qEx4)
+
 ---
 
 ## Features
@@ -73,13 +75,6 @@ Unlike external time-travel tools that require custom instrumentation, browser e
 - **Native integration** — Runs inside the same DevTools window as the widget inspector, performance profiler, and network monitor. No context switching between tools.
 - **Cross-platform** — Works on every platform Flutter DevTools supports (desktop, web, mobile via USB debugging).
 
-**Compare to alternatives:**
-| Tool | Setup | Integration | Works with Flutter DevTools |
-|------|-------|-------------|---------------------------|
-| `bloc_replay` | Manual serialization + custom UI | Separate package | No (custom replayer widget) |
-| Redux DevTools | Browser extension + middleware setup | Chrome only | No |
-| **puer_time_travel** | Change one constructor | Built-in DevTools extension | Yes |
-
 ---
 
 ## Quick start
@@ -125,7 +120,9 @@ final feature = TimeTravelFeature<CounterState, CounterMessage, CounterEffect>(
 
 Run your app and open Flutter DevTools. A new tab called **puer_time_travel** will appear automatically.
 
-<!-- TODO: Add screenshot of the DevTools tab appearing in the tab bar -->
+<p align="center">
+<img src="https://raw.githubusercontent.com/Vorkytaka/puer/master/media/screenshots/devtools_tab.png" alt="Devtools Tab" />
+</p>
 
 ---
 
@@ -133,7 +130,9 @@ Run your app and open Flutter DevTools. A new tab called **puer_time_travel** wi
 
 The DevTools extension provides a visual timeline of every message your features have processed, along with navigation controls to move through history.
 
-<!-- TODO: Add screenshot of the DevTools extension connected view showing the timeline -->
+<p align="center">
+<img src="https://raw.githubusercontent.com/Vorkytaka/puer/master/media/screenshots/devtools_screen.png" alt="Devtools Tab" />
+</p>
 
 ### Navigation controls
 
@@ -146,11 +145,11 @@ The DevTools extension provides a visual timeline of every message your features
 | **End Time Travel** | Exit time-travel mode and restore the current live state |
 | **Click any event** | Jump directly to that point in the timeline |
 
-<!-- TODO: Add screenshot of the navigation toolbar -->
+<p align="center">
+<img src="https://raw.githubusercontent.com/Vorkytaka/puer/master/media/screenshots/devtools_navbar.png" alt="Devtools Tab" />
+</p>
 
 When time-traveling, the app's UI updates to reflect the historical state at the selected point. Effects are suppressed — no HTTP calls, no storage writes, no side effects re-execute during navigation.
-
-<!-- TODO: Add YouTube video demonstrating time-travel navigation in action -->
 
 ---
 
@@ -296,8 +295,6 @@ runApp(
   ),
 );
 ```
-
-<!-- TODO: Add screenshot of the example app running alongside the DevTools extension -->
 
 ---
 
