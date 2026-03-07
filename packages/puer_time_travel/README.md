@@ -15,8 +15,9 @@
 A drop-in time-travel debugging extension for [puer](https://pub.dev/packages/puer).
 
 Record every message and state snapshot automatically. Step backward and forward through your app's history using a dedicated Flutter DevTools extension — no extra code required.
+Here is a video example of how it works (click image below):
 
-[![Watch the video](https://img.youtube.com/vi/AfpMZ41qEx4/maxresdefault.jpg)](https://youtu.be/AfpMZ41qEx4)
+[![Watch the video](https://img.youtube.com/vi/AfpMZ41qEx4/hqdefault.jpg)](https://youtu.be/AfpMZ41qEx4)
 
 ---
 
