@@ -1,3 +1,7 @@
+## NEXT
+
+- Export `puer` from this package (#24)
+
 ## 1.0.0-alpha.2
 
 - Add README.md

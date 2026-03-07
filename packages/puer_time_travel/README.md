@@ -89,16 +89,16 @@ Unlike external time-travel tools that require custom instrumentation, browser e
 ```yaml
 # pubspec.yaml
 dependencies:
-  puer: ^1.0.0-alpha.1
   puer_time_travel: ^1.0.0-alpha.2
 ```
+
+**Note:** `puer_time_travel` re-exports the core `puer` package, so you only need this single dependency.
 
 ### 2. Replace `Feature` with `TimeTravelFeature`
 
 The only change is the constructor — pass a unique `name` and use `TimeTravelFeature` instead of `Feature`:
 
 ```dart
-import 'package:puer/puer.dart';
 import 'package:puer_time_travel/puer_time_travel.dart';
 
 // Before:
@@ -234,7 +234,6 @@ A typical setup enables time travel only in debug builds:
 
 ```dart
 import 'package:flutter/foundation.dart';
-import 'package:puer/puer.dart';
 import 'package:puer_time_travel/puer_time_travel.dart';
 
 Feature<MyState, MyMsg, MyEffect> createMyFeature() {
@@ -269,7 +268,6 @@ The example builds a counter app with increment, decrement, and async loading. T
 
 ```dart
 // lib/domain/counter_feature.dart
-import 'package:puer/puer.dart';
 import 'package:puer_time_travel/puer_time_travel.dart';
 
 typedef CounterFeature = Feature<CounterState, CounterMessage, CounterEffect>;

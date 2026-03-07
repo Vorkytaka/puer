@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:puer/puer.dart';
 import 'package:puer_flutter/puer_flutter.dart';
 
 class MockFeature extends Mock implements Feature {}

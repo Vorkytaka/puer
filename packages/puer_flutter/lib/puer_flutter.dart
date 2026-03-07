@@ -1,3 +1,7 @@
+export 'package:provider/provider.dart'
+    show ProviderNotFoundException, ReadContext, SelectContext, WatchContext;
+export 'package:puer/puer.dart';
+
 export 'src/feature_builder.dart';
 export 'src/feature_effect_listener.dart';
 export 'src/feature_listener.dart';

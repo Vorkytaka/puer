@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:puer/puer.dart';
 
 import '../puer_flutter.dart';
 

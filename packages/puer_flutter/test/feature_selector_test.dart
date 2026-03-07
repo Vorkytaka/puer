@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:puer/puer.dart';
 import 'package:puer_flutter/puer_flutter.dart';
 
 typedef MockState = (int, String);
