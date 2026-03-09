@@ -693,10 +693,20 @@ test('Debounced handler cancels previous effects', () async {
 
 ---
 
+## Packages
+
+| Package | Pub | Description |
+|---------|-----|-------------|
+| [**puer**](https://github.com/Vorkytaka/puer/tree/master/packages/puer) | [![pub package](https://img.shields.io/pub/v/puer.svg)](https://pub.dev/packages/puer) | Core TEA implementation with `Feature`, `update`, and effect handlers. Pure Dart foundation. |
+| [**puer_flutter**](https://github.com/Vorkytaka/puer/tree/master/packages/puer_flutter) | [![pub package](https://img.shields.io/pub/v/puer_flutter.svg)](https://pub.dev/packages/puer_flutter) | Flutter integration: `FeatureProvider`, `FeatureBuilder`, `FeatureListener` widgets. |
+| [**puer_effect_handlers**](https://github.com/Vorkytaka/puer/tree/master/packages/puer_effect_handlers) | [![pub package](https://img.shields.io/pub/v/puer_effect_handlers.svg)](https://pub.dev/packages/puer_effect_handlers) | Composable wrappers for debouncing, sequential execution, and isolate offloading. |
+| [**puer_test**](https://github.com/Vorkytaka/puer/tree/master/packages/puer_test) | [![pub package](https://img.shields.io/pub/v/puer_test.svg)](https://pub.dev/packages/puer_test) | Testing utilities for concise update and handler tests. Add to `dev_dependencies`. |
+| [**puer_time_travel**](https://github.com/Vorkytaka/puer/tree/master/packages/puer_time_travel) | [![pub package](https://img.shields.io/pub/v/puer_time_travel.svg)](https://pub.dev/packages/puer_time_travel) | Time-travel debugging with DevTools extension. Use in debug builds to inspect history. |
+
+---
+
 ## Learn More
 
-- **[puer package](https://pub.dev/packages/puer)** — Core library documentation
-- **[puer_flutter package](https://pub.dev/packages/puer_flutter)** — Flutter integration widgets
 - **[Main repository](https://github.com/Vorkytaka/puer)** — Full architecture guide, patterns, and examples
 - **[The Elm Architecture](https://guide.elm-lang.org/architecture/)** — The pattern puer is based on
 
