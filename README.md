@@ -26,17 +26,15 @@ This separation eliminates entire classes of bugs. Your state transitions are de
 
 ---
 
-## Package overview
+## Packages
 
-| Package | Description | Path |
-|---|---|---|
-| [`puer`](./packages/puer/) | Core library: `Feature`, `update`, `EffectHandler`, `StateStream`, `Transition`. Pure Dart, no Flutter dependency. | `packages/puer` |
-| [`puer_flutter`](./packages/puer_flutter/) | Flutter widgets: `FeatureProvider`, `FeatureBuilder`, `FeatureListener`, `FeatureSelector`, `FeatureEffectListener`. | `packages/puer_flutter` |
-| [`puer_effect_handlers`](./packages/puer_effect_handlers/) | Composable handler wrappers: debounce, sequential execution, type adaptation, isolate offloading. Available in this repository. | `packages/puer_effect_handlers` |
-| [`puer_test`](./packages/puer_test/) | Test utilities: `UpdateTest` and `EffectHandlerTests` extensions for concise, assertion-style unit tests. | `packages/puer_test` |
-| [`puer_time_travel`](./packages/puer_time_travel/) | `TimeTravelFeature` drop-in replacement + `TimeTravelController` for step-by-step history navigation. | `packages/puer_time_travel` |
-
-A typical Flutter app depends on `puer` + `puer_flutter` at runtime, adds `puer_time_travel` in debug builds, and uses `puer_test` in `dev_dependencies`.
+| Package | Pub | Description |
+|---------|-----|-------------|
+| [**puer**](./packages/puer/) | [![pub package](https://img.shields.io/pub/v/puer.svg)](https://pub.dev/packages/puer) | Core TEA implementation with `Feature`, `update`, and effect handlers. Pure Dart foundation. |
+| [**puer_flutter**](./packages/puer_flutter/) | [![pub package](https://img.shields.io/pub/v/puer_flutter.svg)](https://pub.dev/packages/puer_flutter) | Flutter integration: `FeatureProvider`, `FeatureBuilder`, `FeatureListener` widgets. |
+| [**puer_effect_handlers**](./packages/puer_effect_handlers/) | [![pub package](https://img.shields.io/pub/v/puer_effect_handlers.svg)](https://pub.dev/packages/puer_effect_handlers) | Composable wrappers for debouncing, sequential execution, and isolate offloading. |
+| [**puer_test**](./packages/puer_test/) | [![pub package](https://img.shields.io/pub/v/puer_test.svg)](https://pub.dev/packages/puer_test) | Testing utilities for concise update and handler tests. Add to `dev_dependencies`. |
+| [**puer_time_travel**](./packages/puer_time_travel/) | [![pub package](https://img.shields.io/pub/v/puer_time_travel.svg)](https://pub.dev/packages/puer_time_travel) | Time-travel debugging with DevTools extension. Use in debug builds to inspect history. |
 
 ---
 
