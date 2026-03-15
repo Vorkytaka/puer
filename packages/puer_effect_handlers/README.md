@@ -20,10 +20,6 @@ This package provides ready-to-use wrappers that add behavior to your effect han
 
 ## Features
 
-✅ **Debounce** — Delay effect execution, canceling previous invocations if new effects arrive  
-✅ **Sequential** — Queue effects and process them one at a time, ensuring strict ordering  
-✅ **Isolate** — Offload heavy computation to a separate isolate without blocking the UI thread  
-✅ **Adapt** — Map effect and message types to enable truly reusable generic handlers  
 ✅ **Composable** — Chain wrappers via extension methods (`.debounced().isolated()`)  
 ✅ **Zero modification** — Wrap existing handlers without changing their code
 
@@ -56,8 +52,9 @@ final feature = Feature<State, Message, Effect>(
   update: update,
   effectHandlers: [
     myHandler
+      .isolated()                              // Run in separate isolate
       .debounced(Duration(milliseconds: 300))  // Debounce for 300ms
-      .isolated(),                              // Run in separate isolate
+
   ],
 );
 ```
@@ -73,8 +70,8 @@ Every wrapper is an `EffectHandler` itself, so wrappers compose naturally via ex
 ```dart
 myHandler
   .debounced(Duration(milliseconds: 500))  // Add debouncing
-  .sequential()                            // Ensure sequential execution
   .isolated()                              // Run in isolate
+  .sequential()                            // Ensure sequential execution
 ```
 
 ---
