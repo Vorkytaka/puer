@@ -15,7 +15,7 @@ base class FeatureBase<State, Message, Effect>
   final Update<State, Message, Effect> update;
 
   @protected
-  final List<EffectHandler<Effect, Message>> effectHandlers;
+  final Iterable<EffectHandler<Effect, Message>> effectHandlers;
 
   final StateStream<State> _stateSubject;
 
@@ -24,17 +24,17 @@ base class FeatureBase<State, Message, Effect>
       StreamController<Transition<State, Message, Effect>>.broadcast();
 
   @override
-  final List<Effect> initialEffects;
+  final Iterable<Effect> initialEffects;
 
   @override
-  final List<Effect> disposableEffects;
+  final Iterable<Effect> disposableEffects;
 
   FeatureBase({
     required State initialState,
     required this.update,
-    List<EffectHandler<Effect, Message>> effectHandlers = const [],
-    List<Effect> initialEffects = const [],
-    List<Effect> disposableEffects = const [],
+    Iterable<EffectHandler<Effect, Message>> effectHandlers = const [],
+    Iterable<Effect> initialEffects = const [],
+    Iterable<Effect> disposableEffects = const [],
   })  : _stateSubject = StateStream.seeded(initialState),
         effectHandlers = List.unmodifiable(effectHandlers),
         initialEffects = List.unmodifiable(initialEffects),
@@ -84,7 +84,7 @@ base class FeatureBase<State, Message, Effect>
     required State oldState,
     required Message message,
     required State? newState,
-    required List<Effect> effects,
+    required Iterable<Effect> effects,
   }) {
     if (_isDisposed) {
       throw StateError('Cannot emit transition after FeatureBase is disposed.');

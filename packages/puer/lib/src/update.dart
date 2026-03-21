@@ -1,8 +1,8 @@
 /// Represents the result of handling a message with the update function.
 ///
 /// - [State]: The new state to transition to. If `null`, no state change occurs.
-/// - [List<Effect>]: A list of side effects to execute after processing the message.
-typedef Next<State, Effect> = (State?, List<Effect>);
+/// - [Iterable<Effect>]: An iterable of side effects to execute after processing the message.
+typedef Next<State, Effect> = (State?, Iterable<Effect>);
 
 /// A helper function for constructing a [Next] result.
 ///
@@ -10,11 +10,11 @@ typedef Next<State, Effect> = (State?, List<Effect>);
 /// Instead of writing `return (null, const []);`, you can use: `return next();`
 ///
 /// - [state]: The next state, or `null` to indicate no state change.
-/// - [effects]: A list of side effects to execute. Defaults to an empty list.
+/// - [effects]: An iterable of side effects to execute. Defaults to an empty list.
 @pragma('vm:prefer-inline')
-(State?, List<Effect>) next<State, Effect>({
+(State?, Iterable<Effect>) next<State, Effect>({
   State? state,
-  List<Effect> effects = const [],
+  Iterable<Effect> effects = const [],
 }) =>
     (state, effects);
 

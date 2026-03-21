@@ -40,9 +40,9 @@ abstract interface class Feature<State, Message, Effect> implements Disposable {
   factory Feature({
     required State initialState,
     required Update<State, Message, Effect> update,
-    List<EffectHandler<Effect, Message>> effectHandlers = const [],
-    List<Effect> initialEffects = const [],
-    List<Effect> disposableEffects = const [],
+    Iterable<EffectHandler<Effect, Message>> effectHandlers = const [],
+    Iterable<Effect> initialEffects = const [],
+    Iterable<Effect> disposableEffects = const [],
   }) =>
       FeatureBase(
         initialState: initialState,
@@ -55,12 +55,12 @@ abstract interface class Feature<State, Message, Effect> implements Disposable {
   /// Initial effects executed when the feature is created.
   ///
   /// Each effect handlers of this feature will get all of this effects on [init].
-  List<Effect> get initialEffects;
+  Iterable<Effect> get initialEffects;
 
   /// Effects executed when the feature is disposed.
   ///
   /// Each effect handlers of this feature will get all of this effects on [dispose].
-  List<Effect> get disposableEffects;
+  Iterable<Effect> get disposableEffects;
 
   /// A stream providing updates to the feature's state.
   ///
