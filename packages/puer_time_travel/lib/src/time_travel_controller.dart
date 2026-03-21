@@ -81,6 +81,11 @@ final class TimeTravelController {
   void register(String name, TimeTravelFeature feature) {
     _ensureServiceExtension();
 
+    assert(
+      !state.features.containsKey(name),
+      'TimeTravelController already contains feature with name "$name". Names should be unique.',
+    );
+
     _stateSubject.add(
       state.copyWith(
         features: {
