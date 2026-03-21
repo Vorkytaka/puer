@@ -1,5 +1,3 @@
-import 'package:meta/meta.dart';
-
 import 'effect_handler.dart';
 import 'feature.dart';
 
@@ -9,7 +7,6 @@ import 'feature.dart';
 /// If [EffectHandler] implements it, then [Feature] will dispose this handler.
 ///
 /// But [Feature] itself also implements it, just because it can.
-@experimental
 abstract interface class Disposable {
   /// Disposes of resources held by the implementing class.
   ///

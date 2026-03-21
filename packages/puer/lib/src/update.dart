@@ -1,10 +1,7 @@
-import 'package:meta/meta.dart';
-
 /// Represents the result of handling a message with the update function.
 ///
 /// - [State]: The new state to transition to. If `null`, no state change occurs.
 /// - [List<Effect>]: A list of side effects to execute after processing the message.
-@experimental
 typedef Next<State, Effect> = (State?, List<Effect>);
 
 /// A helper function for constructing a [Next] result.
@@ -14,7 +11,6 @@ typedef Next<State, Effect> = (State?, List<Effect>);
 ///
 /// - [state]: The next state, or `null` to indicate no state change.
 /// - [effects]: A list of side effects to execute. Defaults to an empty list.
-@experimental
 @pragma('vm:prefer-inline')
 (State?, List<Effect>) next<State, Effect>({
   State? state,
@@ -33,7 +29,6 @@ typedef Next<State, Effect> = (State?, List<Effect>);
 ///
 /// The main idea is that this function __must__ be pure.
 /// If it's not, you might want to look at other state managers. :)
-@experimental
 typedef Update<State, Message, Effect> = Next<State, Effect> Function(
   State state,
   Message message,

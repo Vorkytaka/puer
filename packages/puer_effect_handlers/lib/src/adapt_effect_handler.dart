@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:meta/meta.dart';
 import 'package:puer/puer.dart';
 
 /// A function type that converts a value of type [From] to a value of type [To].
@@ -57,7 +56,6 @@ typedef Adapt<From, To> = To Function(From from);
 ///
 /// See also:
 /// - [AdaptEffectHandlerExt] for the fluent `.adapt(...)` extension method.
-@experimental
 final class AdaptEffectHandler<InnerEffect, InnerMessage, OuterEffect,
     OuterMessage> implements EffectHandler<OuterEffect, OuterMessage> {
   /// The underlying effect handler that processes effects of type [InnerEffect]

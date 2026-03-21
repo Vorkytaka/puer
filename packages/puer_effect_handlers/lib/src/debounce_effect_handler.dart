@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:meta/meta.dart';
 import 'package:puer/puer.dart';
 
 /// An [EffectHandler] implementation that adds a debounce mechanism to effect handling.
@@ -20,7 +19,6 @@ import 'package:puer/puer.dart';
 ///   handler: myEffectHandler,
 /// );
 /// ```
-@experimental
 final class DebounceEffectHandler<Effect, Message>
     implements EffectHandler<Effect, Message>, Disposable {
   /// The duration to wait before handling the effect.

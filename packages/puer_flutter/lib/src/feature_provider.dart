@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 import 'package:provider/provider.dart';
 import 'package:puer/puer.dart';
 
@@ -9,7 +8,6 @@ import 'package:puer/puer.dart';
 /// within a [FeatureProvider].
 ///
 /// - [F]: The type of the [Feature].
-@experimental
 typedef CreateFeature<F extends Feature> = F Function(BuildContext context);
 
 /// A provider widget for managing and exposing a [Feature] to the widget tree.
@@ -38,7 +36,6 @@ typedef CreateFeature<F extends Feature> = F Function(BuildContext context);
 ///
 /// ### Key Parameters
 /// - [F]: The type of the [Feature].
-@experimental
 class FeatureProvider<F extends Feature> extends StatelessWidget {
   /// An existing [Feature] instance to be provided.
   final F? _value;

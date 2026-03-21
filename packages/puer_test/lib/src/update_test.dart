@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:puer/puer.dart';
 import 'package:test/test.dart';
 
@@ -24,7 +23,6 @@ import 'package:test/test.dart';
 ///   expectedEffects: [MyEffect.doSomething()],
 /// );
 /// ```
-@experimental
 extension UpdateTest<State, Message, Effect> on Update<State, Message, Effect> {
   /// Tests the behavior of an [Update] function by verifying the resulting
   /// state and effects.

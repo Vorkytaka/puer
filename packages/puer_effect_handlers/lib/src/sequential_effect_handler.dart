@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:meta/meta.dart';
 import 'package:puer/puer.dart';
 
 /// An [EffectHandler] implementation that ensures effects are handled sequentially.
@@ -18,7 +17,6 @@ import 'package:puer/puer.dart';
 ///   handler: myEffectHandler,
 /// );
 /// ```
-@experimental
 final class SequentialEffectHandler<Effect, Message>
     implements EffectHandler<Effect, Message>, Disposable {
   /// The wrapped effect handler that processes individual effects.

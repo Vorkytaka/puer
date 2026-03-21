@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:meta/meta.dart';
 import 'package:puer/puer.dart';
 
 /// Extension methods for [EffectHandler] to add isolate support.
@@ -53,7 +52,6 @@ extension IsolateEffectHandlerExt<Effect, Message>
 /// ### Note:
 /// - Each effect is processed in its own isolate, which is spawned and terminated automatically.
 /// - Because of how isolates work, be careful: not all objects can be sent. See [SendPort] docs.
-@experimental
 final class IsolateEffectHandler<Effect, Message>
     implements EffectHandler<Effect, Message> {
   /// The underlying effect handler that will be executed in an isolate.
