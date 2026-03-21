@@ -3,12 +3,12 @@ import 'transition.dart';
 abstract interface class ReadOnlyFeature<State, Message, Effect> {
   /// Initial effects executed when the feature is created.
   ///
-  /// Each effect handlers of this feature will get all of this effects on [init].
+  /// Each effect handlers of this feature will get all of this effects on initialization.
   Iterable<Effect> get initialEffects;
 
   /// Effects executed when the feature is disposed.
   ///
-  /// Each effect handlers of this feature will get all of this effects on [dispose].
+  /// Each effect handlers of this feature will get all of this effects on disposal.
   Iterable<Effect> get disposableEffects;
 
   /// A stream providing updates to the feature's state.
@@ -30,7 +30,7 @@ abstract interface class ReadOnlyFeature<State, Message, Effect> {
 
   /// A stream of transitions representing each state change step in the feature.
   ///
-  /// Each time a message is processed via [accept], a [Transition] is emitted containing:
+  /// Each time a message is processed, a [Transition] is emitted containing:
   /// - The state before the message was processed
   /// - The message itself
   /// - The new state (or `null` if unchanged)
@@ -58,10 +58,53 @@ abstract interface class ReadOnlyFeature<State, Message, Effect> {
   Stream<Transition<State, Message, Effect>> get transitions;
 }
 
+/// A type-safe wrapper that prevents mutation of a feature.
+///
+/// This wrapper implements the [ReadOnlyFeature] interface and delegates all
+/// read-only operations to the underlying feature, while preventing access to
+/// mutating methods like `accept`, `init`, and `dispose`.
+///
+/// ### Purpose
+///
+/// Use this wrapper when you need to share a feature across component boundaries
+/// without allowing consumers to modify its state. This enforces architectural
+/// boundaries and prevents unintended side effects.
+///
+/// ### Example
+///
+/// ```dart
+/// // In a parent component
+/// final feature = Feature<int, String, String>(
+///   initialState: 0,
+///   update: (state, msg) => (state + 1, []),
+/// );
+///
+/// // Share read-only access with a child component
+/// final readOnlyFeature = ReadOnlyFeatureWrapper(feature: feature);
+/// childComponent.setFeature(readOnlyFeature);
+///
+/// // Child can read state but cannot call accept/init/dispose
+/// print(readOnlyFeature.state); // ✅ Works
+/// // readOnlyFeature.accept('msg'); // ❌ Compile error - method not available
+/// ```
+///
+/// ### Pattern
+///
+/// This implements the wrapper/proxy pattern to provide a restricted interface
+/// to the underlying feature. The `final` class modifier prevents subclassing
+/// to maintain type safety guarantees.
+///
+/// See also:
+/// - [ReadOnlyFeature] for the read-only interface definition
+/// - [ReadOnlyFeatureWrapperExt] for the convenient `.asReadOnly` extension
 final class ReadOnlyFeatureWrapper<State, Message, Effect>
     implements ReadOnlyFeature<State, Message, Effect> {
   final ReadOnlyFeature<State, Message, Effect> _feature;
 
+  /// Creates a read-only wrapper around the given [feature].
+  ///
+  /// The wrapper delegates all read-only operations to [feature] while
+  /// preventing access to mutating methods.
   const ReadOnlyFeatureWrapper({
     required ReadOnlyFeature<State, Message, Effect> feature,
   }) : _feature = feature;
@@ -86,8 +129,41 @@ final class ReadOnlyFeatureWrapper<State, Message, Effect>
       _feature.transitions;
 }
 
+/// Extension providing a convenient way to create a read-only view of a feature.
+///
+/// This extension adds the [asReadOnly] getter to any [ReadOnlyFeature],
+/// which wraps it in a [ReadOnlyFeatureWrapper] to prevent mutation.
+///
+/// ### Example
+///
+/// ```dart
+/// final feature = Feature<int, String, String>(
+///   initialState: 0,
+///   update: (state, msg) => (state + 1, []),
+/// );
+///
+/// // Create a read-only view
+/// final readOnly = feature.asReadOnly;
+///
+/// // Can access state
+/// print(readOnly.state); // ✅ Works
+///
+/// // Cannot mutate
+/// // readOnly.accept('msg'); // ❌ Compile error
+/// ```
+///
+/// ### Use Cases
+///
+/// - Passing features to child components that should only observe state
+/// - Sharing features across architectural boundaries
+/// - Preventing accidental mutations in read-only contexts
+/// - Creating immutable views for testing or logging
 extension ReadOnlyFeatureWrapperExt<State, Message, Effect>
     on ReadOnlyFeature<State, Message, Effect> {
+  /// Returns a read-only wrapper of this feature.
+  ///
+  /// The returned wrapper delegates all read-only operations to this feature
+  /// while preventing access to mutating methods like `accept`, `init`, and `dispose`.
   ReadOnlyFeature<State, Message, Effect> get asReadOnly =>
       ReadOnlyFeatureWrapper(feature: this);
 }
