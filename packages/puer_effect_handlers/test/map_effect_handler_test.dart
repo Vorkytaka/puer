@@ -5,14 +5,14 @@ import 'package:puer_effect_handlers/puer_effect_handlers.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('AdaptEffectHandler', () {
+  group('MapEffectHandler', () {
     test('maps effect before delegating to inner handler', () {
       String? receivedInnerEffect;
       final inner = _CapturingHandler(onCall: (effect, emit) {
         receivedInnerEffect = effect;
       });
 
-      final handler = AdaptEffectHandler(
+      final handler = MapEffectHandler(
         effectHandler: inner,
         effectMapper: (String outer) => 'mapped:$outer',
         messageMapper: (String inner) => inner,
@@ -29,7 +29,7 @@ void main() {
       });
 
       final emitted = <String>[];
-      final handler = AdaptEffectHandler(
+      final handler = MapEffectHandler(
         effectHandler: inner,
         effectMapper: (String outer) => outer,
         messageMapper: (String inner) => 'wrapped:$inner',
@@ -48,7 +48,7 @@ void main() {
       });
 
       final emitted = <String>[];
-      final handler = AdaptEffectHandler(
+      final handler = MapEffectHandler(
         effectHandler: inner,
         effectMapper: (String outer) => outer,
         messageMapper: (String inner) => inner.toUpperCase(),
@@ -64,7 +64,7 @@ void main() {
         emit('msg');
       });
 
-      final handler = AdaptEffectHandler(
+      final handler = MapEffectHandler(
         effectHandler: inner,
         effectMapper: (String outer) => outer,
         messageMapper: (String inner) => inner,
@@ -82,7 +82,7 @@ void main() {
       });
 
       final emitted = <String>[];
-      final handler = AdaptEffectHandler(
+      final handler = MapEffectHandler(
         effectHandler: inner,
         effectMapper: (String outer) => outer,
         messageMapper: (String inner) => 'async:$inner',
@@ -101,7 +101,7 @@ void main() {
       });
 
       final emitted = <String>[];
-      final handler = AdaptEffectHandler(
+      final handler = MapEffectHandler(
         effectHandler: inner,
         effectMapper: (String outer) => outer,
         messageMapper: (String inner) => inner,
@@ -121,7 +121,7 @@ void main() {
 
       final emitted = <String>[];
       var callCount = 0;
-      final handler = AdaptEffectHandler(
+      final handler = MapEffectHandler(
         effectHandler: inner,
         effectMapper: (String outer) => 'e${++callCount}:$outer',
         messageMapper: (String inner) => 'm$callCount:$inner',
@@ -140,7 +140,7 @@ void main() {
       });
 
       final emitted = <String>[];
-      final handler = AdaptEffectHandler<int, int, String, String>(
+      final handler = MapEffectHandler<int, int, String, String>(
         effectHandler: inner,
         effectMapper: (String outer) => int.parse(outer),
         messageMapper: (int inner) => 'result:$inner',
@@ -151,13 +151,13 @@ void main() {
       expect(emitted, ['result:42']);
     });
 
-    test('identity adapt passes effect and message through unchanged', () {
+    test('identity map passes effect and message through unchanged', () {
       final inner = _CapturingHandler(onCall: (effect, emit) {
         emit('reply_to_$effect');
       });
 
       final emitted = <String>[];
-      final handler = AdaptEffectHandler(
+      final handler = MapEffectHandler(
         effectHandler: inner,
         effectMapper: (String outer) => outer,
         messageMapper: (String inner) => inner,
@@ -169,15 +169,15 @@ void main() {
     });
   });
 
-  group('AdaptEffectHandlerExt', () {
-    test('.adapt() creates an AdaptEffectHandler with correct mappers', () {
+  group('MapEffectHandlerExt', () {
+    test('.map() creates a MapEffectHandler with correct mappers', () {
       final inner = _CapturingHandler(onCall: (effect, emit) {
         emit('inner_response');
       });
 
       final emitted = <String>[];
-      final handler = inner.adapt(
-        effectMapper: (String outer) => 'adapted:$outer',
+      final handler = inner.map(
+        effectMapper: (String outer) => 'mapped:$outer',
         messageMapper: (String inner) => 'wrapped:$inner',
       );
 
@@ -187,44 +187,44 @@ void main() {
         emit('inner_response');
       });
 
-      final handler2 = capturingInner.adapt(
-        effectMapper: (String outer) => 'adapted:$outer',
+      final handler2 = capturingInner.map(
+        effectMapper: (String outer) => 'mapped:$outer',
         messageMapper: (String inner) => 'wrapped:$inner',
       );
 
       handler2('original', emitted.add);
 
-      expect(capturedInnerEffect, 'adapted:original');
+      expect(capturedInnerEffect, 'mapped:original');
       expect(emitted, ['wrapped:inner_response']);
       expect(handler, isA<EffectHandler<String, String>>());
     });
 
-    test('.adapt() returns an EffectHandler of the outer types', () {
+    test('.map() returns an EffectHandler of the outer types', () {
       final inner = _IntHandler(onCall: (effect, emit) {
         emit(effect + 1);
       });
 
-      final adapted = inner.adapt<String, String>(
+      final mapped = inner.map<String, String>(
         effectMapper: (String outer) => int.parse(outer),
         messageMapper: (int inner) => '$inner',
       );
 
-      expect(adapted, isA<EffectHandler<String, String>>());
+      expect(mapped, isA<EffectHandler<String, String>>());
 
       final emitted = <String>[];
-      adapted('10', emitted.add);
+      mapped('10', emitted.add);
 
       expect(emitted, ['11']);
     });
 
-    test('.adapt() can be chained with other extensions', () async {
+    test('.map() can be chained with other extensions', () async {
       final inner = _CapturingHandler(onCall: (effect, emit) {
         emit('response');
       });
 
-      // Chain: adapt -> sequential
+      // Chain: map -> sequential
       final handler = inner
-          .adapt(
+          .map(
             effectMapper: (String outer) => outer,
             messageMapper: (String inner) => inner,
           )

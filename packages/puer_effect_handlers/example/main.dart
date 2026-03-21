@@ -40,11 +40,11 @@ Future<void> main() async {
   debouncedHandler(20, (msg) => print(msg)); // This will cancel the first one.
   await Future.delayed(const Duration(milliseconds: 400));
 
-  // 4. Use the adapt wrapper
-  final adaptedHandler = handler.adapt<String, int>(
+  // 4. Use the map wrapper
+  final mappedHandler = handler.map<String, int>(
     effectMapper: (String effect) => int.parse(effect),
     messageMapper: (String message) => message.length,
   );
-  print('\n--- Adapted Handler ---');
-  await adaptedHandler('123456', (msg) => print(msg));
+  print('\n--- Mapped Handler ---');
+  await mappedHandler('123456', (msg) => print(msg));
 }

@@ -436,7 +436,7 @@ The `puer_effect_handlers` package provides **wrapper handlers** that add behavi
 | `DebounceEffectHandler` | Delays effect execution, canceling previous invocations if new effects arrive | Debounce search queries, user input |
 | `SequentialEffectHandler` | Queues effects and processes them one at a time | Ensure ordered execution for shared resources |
 | `IsolateEffectHandler` | Offloads effect execution to a separate isolate | Heavy computation without blocking the UI thread |
-| `AdaptEffectHandler` | Maps effect and message types for reusable generic handlers | Adapt a universal `HttpHandler` to feature-specific types |
+| `MapEffectHandler` | Maps effect and message types for reusable generic handlers | Adapt a universal `HttpHandler` to feature-specific types |
 
 **Example: debounce + run in another isolate execution**
 
@@ -465,7 +465,7 @@ One of the most powerful patterns in puer is writing **generic, reusable handler
 
 **The problem:** Without adapters, every feature needs its own handler, even if the underlying work (HTTP call, database query, etc.) is identical.
 
-**The solution:** Write the handler once for generic types, then use `AdaptEffectHandler` to map your feature's types to the generic types.
+**The solution:** Write the handler once for generic types, then use `MapEffectHandler` to map your feature's types to the generic types.
 
 **Example: reusable HTTP handler**
 
@@ -525,7 +525,7 @@ final class UserLoadFailed extends UserMessage {
 }
 
 // Adapter: maps UserEffect → HttpEffect and HttpMessage → UserMessage
-final userHandler = HttpEffectHandler(httpClient).adapt(
+final userHandler = HttpEffectHandler(httpClient).map(
   effectMapper: (UserEffect effect) {
     // Convert UserEffect → HttpEffect
     return switch (effect) {
