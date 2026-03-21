@@ -4,7 +4,7 @@
 /// - `stateBefore`: The state before processing the message.
 /// - `message`: The message that triggered this transition.
 /// - `stateAfter`: The new state after processing the message, or `null` if the state did not change.
-/// - `effects`: The list of side effects produced during this transition. Can be empty.
+/// - `effects`: An iterable of side effects produced during this transition. Can be empty.
 ///
 /// Transitions are emitted through the `Feature.transitions` stream for every message
 /// processed by the feature, regardless of whether the state actually changed.
@@ -21,5 +21,5 @@ typedef Transition<State, Message, Effect> = ({
   State stateBefore,
   Message message,
   State? stateAfter,
-  List<Effect> effects,
+  Iterable<Effect> effects,
 });
