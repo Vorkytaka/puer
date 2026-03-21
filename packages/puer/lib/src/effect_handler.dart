@@ -1,11 +1,8 @@
 import 'dart:async';
 
-import 'package:meta/meta.dart';
-
 /// A function type for emitting messages within effect handlers.
 ///
 /// Used to trigger messages that may influence state changes or cause further effects.
-@experimental
 typedef MsgEmitter<Message> = void Function(Message message);
 
 /// Interface for handling effects.
@@ -16,7 +13,6 @@ typedef MsgEmitter<Message> = void Function(Message message);
 ///
 /// - [Effect]: The type of effects this handler processes.
 /// - [Message]: The type of messages this handler can emit.
-@experimental
 abstract interface class EffectHandler<Effect, Message> {
   /// Processes the given [effect] and optionally emits messages using [emit].
   ///
@@ -31,7 +27,6 @@ abstract interface class EffectHandler<Effect, Message> {
 /// Equivalent to [EffectHandler] but defined as a function type for simpler usage.
 /// - [Effect]: The type of effects handled.
 /// - [Message]: The type of messages emitted.
-@experimental
 typedef FunEffectHandler<Effect, Message> = FutureOr<void> Function(
   Effect effect,
   MsgEmitter<Message> emit,

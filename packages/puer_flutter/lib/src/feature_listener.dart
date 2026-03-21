@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 import 'package:provider/provider.dart';
 import 'package:puer/puer.dart';
 
@@ -9,14 +8,12 @@ import 'package:puer/puer.dart';
 ///
 /// - [context]: The [BuildContext] of the widget.
 /// - [state]: The new state of the [Feature].
-@experimental
 typedef FeatureWidgetListener<S> = void Function(BuildContext context, S state);
 
 /// A condition that determines whether to notify the [FeatureWidgetListener]
 /// based on the previous and current states.
 ///
 /// Returns `true` if the listener should be invoked, otherwise `false`.
-@experimental
 typedef FeatureStateCondition<S> = bool Function(S previous, S current);
 
 /// A widget that listens to state changes in a [Feature] and invokes a callback.
@@ -40,7 +37,6 @@ typedef FeatureStateCondition<S> = bool Function(S previous, S current);
 ///   child: MyWidget(),
 /// );
 /// ```
-@experimental
 class FeatureListener<F extends Feature<S, dynamic, dynamic>, S>
     extends StatefulWidget {
   /// The callback to be invoked when the state changes.

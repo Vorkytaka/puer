@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:puer/puer.dart';
 import 'package:test/test.dart';
 
@@ -20,7 +19,6 @@ import 'package:test/test.dart';
 ///   expectedMessages: [MyMsg.success(), MyMsg.done()],
 /// );
 /// ```
-@experimental
 extension EffectHandlerTests<Effect, Message>
     on EffectHandler<Effect, Message> {
   /// Tests the behavior of the [EffectHandler] by verifying

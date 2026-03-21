@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 import 'package:provider/provider.dart';
 import 'package:puer/puer.dart';
 
@@ -28,7 +27,6 @@ import 'feature_listener.dart';
 ///   child: MyWidget(),
 /// );
 /// ```
-@experimental
 class FeatureEffectListener<F extends Feature<dynamic, dynamic, E>, E,
     Effect extends E> extends StatefulWidget {
   /// A callback invoked when an effect of type [Effect] is emitted.

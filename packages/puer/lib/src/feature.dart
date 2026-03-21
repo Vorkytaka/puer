@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:meta/meta.dart';
-
 import 'disposable.dart';
 import 'effect_handler.dart';
 import 'feature_base.dart';
@@ -29,7 +27,6 @@ import 'update.dart';
 ///       initialEffects: const [],
 ///     );
 /// ```
-@experimental
 abstract interface class Feature<State, Message, Effect> implements Disposable {
   /// Creates a new `Feature` instance.
   ///

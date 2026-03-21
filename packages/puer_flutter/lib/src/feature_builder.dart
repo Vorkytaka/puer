@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 import 'package:puer/puer.dart';
 
 import 'feature_listener.dart';
@@ -7,7 +6,6 @@ import 'feature_provider.dart';
 
 /// Signature for the `builder` function which takes the `BuildContext` and
 /// [state] and is responsible for returning a widget which is to be rendered.
-@experimental
 typedef FeatureWidgetBuilder<S> = Widget Function(
   BuildContext context,
   S state,
@@ -32,7 +30,6 @@ typedef FeatureWidgetBuilder<S> = Widget Function(
 ///   },
 /// );
 /// ```
-@experimental
 class FeatureBuilder<F extends Feature<S, dynamic, dynamic>, S>
     extends StatefulWidget {
   final FeatureWidgetBuilder<S> builder;
