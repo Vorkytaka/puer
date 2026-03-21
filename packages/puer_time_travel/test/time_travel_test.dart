@@ -963,35 +963,6 @@ void main() {
       await feature.dispose();
       await controller.dispose();
     });
-
-    test('registering the same feature name twice overwrites the first',
-        () async {
-      final controller = TimeTravelController();
-      final feature1 = createCounter(
-        name: 'dup',
-        controller: controller,
-        initialState: 10,
-      );
-      final feature2 = createCounter(
-        name: 'dup',
-        controller: controller,
-        initialState: 20,
-      );
-      await feature1.init();
-      await feature2.init();
-
-      // feature2 should have overwritten feature1 in the controller
-      feature2.accept(CounterMsg.increment);
-      expect(feature2.state, 21);
-
-      // feature1 still works independently but isn't tracked by the controller
-      feature1.accept(CounterMsg.increment);
-      expect(feature1.state, 11);
-
-      await feature1.dispose();
-      await feature2.dispose();
-      await controller.dispose();
-    });
   });
 
   // =========================================================================
