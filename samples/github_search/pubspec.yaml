@@ -1,0 +1,26 @@
+name: github_search
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+resolution: workspace
+
+dependencies:
+  http: ^1.6.0
+  puer_flutter: ^1.0.0-alpha.1
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  puer_effect_handlers: ^1.0.0-alpha.1
+  url_launcher: ^6.3.2
+  puer_time_travel: ^1.0.0-alpha.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  puer_lints: ^1.0.0
+
+flutter:
+  uses-material-design: true
