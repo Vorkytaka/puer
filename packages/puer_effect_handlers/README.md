@@ -312,7 +312,7 @@ final effect = ProcessData({
 
 ---
 
-### 4. AdaptEffectHandler
+### 4. MapEffectHandler
 
 **Purpose:** Maps effect and message types to enable truly reusable generic handlers. This is the **key to writing handlers once and using them everywhere**.
 
@@ -329,13 +329,13 @@ final effect = ProcessData({
 import 'package:puer_effect_handlers/puer_effect_handlers.dart';
 
 // Using the extension method (recommended)
-final adaptedHandler = genericHandler.adapt(
+final mappedHandler = genericHandler.map(
   effectMapper: (MyEffect effect) => effect.toGenericEffect(),
   messageMapper: (GenericMessage message) => message.toMyMessage(),
 );
 
 // Or using the constructor
-final adaptedHandler = AdaptEffectHandler(
+final mappedHandler = MapEffectHandler(
   effectHandler: genericHandler,
   effectMapper: (MyEffect effect) => effect.toGenericEffect(),
   messageMapper: (GenericMessage message) => message.toMyMessage(),
@@ -421,7 +421,7 @@ final class UserLoadFailed extends UserMessage {
 }
 
 // Adapt the generic handler to user feature types
-final userHandler = HttpEffectHandler(httpClient).adapt(
+final userHandler = HttpEffectHandler(httpClient).map(
   effectMapper: (UserEffect effect) {
     return switch (effect) {
       LoadUser(:final userId) => 
@@ -464,7 +464,7 @@ final class ProductsLoadFailed extends ProductMessage {
 }
 
 // Adapt the SAME generic handler to product feature types
-final productHandler = HttpEffectHandler(httpClient).adapt(
+final productHandler = HttpEffectHandler(httpClient).map(
   effectMapper: (ProductEffect effect) {
     return switch (effect) {
       LoadProducts() => HttpGet('https://api.example.com/products'),
@@ -510,7 +510,7 @@ myHandler
 
 ```dart
 final searchHandler = SearchHandler(searchService)
-  .adapt(
+  .map(
     effectMapper: (SearchEffect e) => e.toHttpRequest(),
     messageMapper: (HttpMessage m) => m.toSearchMessage(),
   )
@@ -576,16 +576,16 @@ final feature = Feature<ProcessingState, ProcessingMessage, ProcessingEffect>(
 final httpHandler = HttpEffectHandler(httpClient);
 
 // Adapt to each feature
-final userHandler = httpHandler.adapt(/* user mappers */);
-final productsHandler = httpHandler.adapt(/* product mappers */);
-final ordersHandler = httpHandler.adapt(/* order mappers */);
+final userHandler = httpHandler.map(/* user mappers */);
+final productsHandler = httpHandler.map(/* product mappers */);
+final ordersHandler = httpHandler.map(/* order mappers */);
 ```
 
 ### Pattern 5: Full composition
 
 ```dart
 final handler = MyHandler(service)
-  .adapt(effectMapper: ..., messageMapper: ...)
+  .map(effectMapper: ..., messageMapper: ...)
   .debounced(Duration(milliseconds: 500))
   .sequential()
   .isolated();
@@ -601,7 +601,7 @@ Handlers should be "stupid" — no business logic, just execution. Adapt generic
 
 ```dart
 // ✅ GOOD: Generic handler, adapted to feature types
-final handler = HttpEffectHandler(client).adapt(
+final handler = HttpEffectHandler(client).map(
   effectMapper: (MyEffect e) => e.toHttpRequest(),
   messageMapper: (HttpMessage m) => m.toMyMessage(),
 );
