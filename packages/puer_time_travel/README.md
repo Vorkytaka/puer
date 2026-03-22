@@ -156,7 +156,7 @@ When time-traveling, the app's UI updates to reflect the historical state at the
 
 ## How it works
 
-`TimeTravelFeature` wraps a regular `Feature` and intercepts every `accept(message)` call:
+`TimeTravelFeature` wraps a regular `Feature` and intercepts every `add(message)` call:
 
 1. **During normal operation:** State updates, transitions emit, effects fire, and the message is recorded in the timeline. Periodic full state snapshots are saved for efficient navigation.
 2. **During time travel:** The controller finds the nearest earlier snapshot, restores it to all registered features, then replays messages up to the target index. State updates so the UI reflects the historical point, but effects are suppressed.
@@ -314,3 +314,4 @@ runApp(
 ## License
 
 [MIT](https://github.com/Vorkytaka/puer/blob/master/LICENSE)
+

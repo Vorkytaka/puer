@@ -65,7 +65,7 @@ void main() {
   feature.init();
 
   print(feature.state.count); // 0
-  feature.accept(Increment());
+  feature.add(Increment());
   print(feature.state.count); // 1
 
   feature.dispose();

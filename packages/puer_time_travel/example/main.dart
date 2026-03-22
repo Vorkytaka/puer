@@ -69,19 +69,19 @@ void main() async {
   print('Performing operations:');
   print('  Initial state: ${feature.state}');
 
-  feature.accept(const Increment());
+  feature.add(const Increment());
   await Future<void>.delayed(Duration.zero); // Let state propagate
   print('  After Increment: ${feature.state}');
 
-  feature.accept(const Increment());
+  feature.add(const Increment());
   await Future<void>.delayed(Duration.zero);
   print('  After Increment: ${feature.state}');
 
-  feature.accept(const Increment());
+  feature.add(const Increment());
   await Future<void>.delayed(Duration.zero);
   print('  After Increment: ${feature.state}');
 
-  feature.accept(const Decrement());
+  feature.add(const Decrement());
   await Future<void>.delayed(Duration.zero);
   print('  After Decrement: ${feature.state}');
 
@@ -124,11 +124,11 @@ void main() async {
   print('Is time traveling: ${controller.isTimeTraveling}\n');
 
   print('Adding new operations after time travel:');
-  feature.accept(const Increment());
+  feature.add(const Increment());
   await Future<void>.delayed(Duration.zero);
   print('  After Increment: ${feature.state}');
 
-  feature.accept(const Reset());
+  feature.add(const Reset());
   await Future<void>.delayed(Duration.zero);
   print('  After Reset: ${feature.state}');
 

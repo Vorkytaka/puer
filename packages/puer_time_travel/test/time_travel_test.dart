@@ -139,7 +139,7 @@ void main() {
       await feature.init();
 
       // The feature is registered – sending a message proves it works.
-      feature.accept(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
       expect(feature.state, 43);
 
       await feature.dispose();
@@ -150,7 +150,7 @@ void main() {
       await feature.init();
 
       // Produce a message so the timeline is non-empty.
-      feature.accept(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
       expect(controller.state.timeline, hasLength(1));
 
       await feature.dispose(); // calls unregister
@@ -178,10 +178,10 @@ void main() {
       await controller.dispose();
     });
 
-    test('each accepted message is appended to the timeline', () {
-      feature.accept(CounterMsg.increment);
-      feature.accept(CounterMsg.increment);
-      feature.accept(CounterMsg.decrement);
+    test('each added message is appended to the timeline', () {
+      feature.add(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
+      feature.add(CounterMsg.decrement);
 
       final timeline = controller.state.timeline;
       expect(timeline, hasLength(3));
@@ -192,8 +192,8 @@ void main() {
     });
 
     test('timeline events have non-decreasing timestamps', () {
-      feature.accept(CounterMsg.increment);
-      feature.accept(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
 
       final t0 = controller.state.timeline[0].millisecondsSinceStart;
       final t1 = controller.state.timeline[1].millisecondsSinceStart;
@@ -201,7 +201,7 @@ void main() {
     });
 
     test('timeline is unmodifiable', () {
-      feature.accept(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
 
       expect(
         () => controller.state.timeline.add(
@@ -240,24 +240,24 @@ void main() {
       await controller.dispose();
     });
 
-    test('accept updates state correctly', () {
-      feature.accept(CounterMsg.increment);
+    test('add updates state correctly', () {
+      feature.add(CounterMsg.increment);
       expect(feature.state, 1);
 
-      feature.accept(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
       expect(feature.state, 2);
 
-      feature.accept(CounterMsg.decrement);
+      feature.add(CounterMsg.decrement);
       expect(feature.state, 1);
     });
 
-    test('accept with same state value does not re-emit state', () async {
+    test('add with same state value does not re-emit state', () async {
       // reset to 0 when already at 0 – produces state=0 which equals
       // current state, so _stateSubject should NOT re-emit.
       final states = <int>[];
       feature.stateStream.skip(1).listen(states.add); // skip seed
 
-      feature.accept(CounterMsg.reset); // 0 -> 0 (same value)
+      feature.add(CounterMsg.reset); // 0 -> 0 (same value)
       await Future.delayed(Duration.zero);
 
       // The effect should still fire even though state didn't change.
@@ -267,7 +267,7 @@ void main() {
     });
 
     test('effects are delivered in normal mode', () async {
-      feature.accept(CounterMsg.reset);
+      feature.add(CounterMsg.reset);
 
       // Give microtask queue a chance to deliver the stream event.
       await Future.delayed(Duration.zero);
@@ -277,8 +277,8 @@ void main() {
 
     test('effects are suppressed during time travel replay', () async {
       // Build up some history that includes an effect-producing message.
-      feature.accept(CounterMsg.increment); // timeline[0]
-      feature.accept(CounterMsg.reset); // timeline[1] – produces effect
+      feature.add(CounterMsg.increment); // timeline[0]
+      feature.add(CounterMsg.reset); // timeline[1] – produces effect
 
       await Future.delayed(Duration.zero);
       effectHandler.handled.clear();
@@ -294,9 +294,9 @@ void main() {
       final states = <int>[];
       final sub = feature.stateStream.skip(1).listen(states.add);
 
-      feature.accept(CounterMsg.increment);
-      feature.accept(CounterMsg.increment);
-      feature.accept(CounterMsg.decrement);
+      feature.add(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
+      feature.add(CounterMsg.decrement);
 
       await Future.delayed(Duration.zero);
       expect(states, [1, 2, 1]);
@@ -324,9 +324,9 @@ void main() {
     });
 
     test('goBack from live mode goes to second-to-last event', () {
-      feature.accept(CounterMsg.increment); // state 1, timeline[0]
-      feature.accept(CounterMsg.increment); // state 2, timeline[1]
-      feature.accept(CounterMsg.increment); // state 3, timeline[2]
+      feature.add(CounterMsg.increment); // state 1, timeline[0]
+      feature.add(CounterMsg.increment); // state 2, timeline[1]
+      feature.add(CounterMsg.increment); // state 3, timeline[2]
 
       controller.goBack(); // should move to index 1
       expect(controller.state.navigation.currentIndex, 1);
@@ -343,15 +343,15 @@ void main() {
       expect(controller.isTimeTraveling, isFalse);
 
       // Single event
-      feature.accept(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
       controller.goBack();
       expect(controller.state.navigation.currentIndex, isNull);
       expect(controller.isTimeTraveling, isFalse);
     });
 
     test('goBack at index 0 goes to initial state', () {
-      feature.accept(CounterMsg.increment);
-      feature.accept(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
 
       controller.goToStart(); // initial state
       controller.goForward(); // index 0
@@ -364,8 +364,8 @@ void main() {
     });
 
     test('goBack at initial state does nothing', () {
-      feature.accept(CounterMsg.increment);
-      feature.accept(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
 
       controller.goToStart(); // initial state
       controller.goBack(); // should stay at initial state
@@ -374,7 +374,7 @@ void main() {
     });
 
     test('goForward in live mode does nothing', () {
-      feature.accept(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
 
       controller.goForward();
       expect(controller.state.navigation.currentIndex, isNull);
@@ -382,8 +382,8 @@ void main() {
     });
 
     test('goForward at end of timeline does nothing', () {
-      feature.accept(CounterMsg.increment);
-      feature.accept(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
 
       controller.goBack(); // index 0 (second-to-last)
       controller.goForward(); // index 1 (last)
@@ -394,9 +394,9 @@ void main() {
     });
 
     test('goForward moves one step forward', () {
-      feature.accept(CounterMsg.increment); // 1
-      feature.accept(CounterMsg.increment); // 2
-      feature.accept(CounterMsg.increment); // 3
+      feature.add(CounterMsg.increment); // 1
+      feature.add(CounterMsg.increment); // 2
+      feature.add(CounterMsg.increment); // 3
 
       controller.goToStart(); // initial state, state = 0
       expect(feature.state, 0);
@@ -430,9 +430,9 @@ void main() {
     });
 
     test('goToStart restores to true initial state', () {
-      feature.accept(CounterMsg.increment); // 1
-      feature.accept(CounterMsg.increment); // 2
-      feature.accept(CounterMsg.increment); // 3
+      feature.add(CounterMsg.increment); // 1
+      feature.add(CounterMsg.increment); // 2
+      feature.add(CounterMsg.increment); // 3
 
       controller.goToStart();
       expect(controller.state.navigation.currentIndex, isNull);
@@ -441,9 +441,9 @@ void main() {
     });
 
     test('goToEnd restores final state and stays in time travel mode', () {
-      feature.accept(CounterMsg.increment); // 1
-      feature.accept(CounterMsg.increment); // 2
-      feature.accept(CounterMsg.increment); // 3
+      feature.add(CounterMsg.increment); // 1
+      feature.add(CounterMsg.increment); // 2
+      feature.add(CounterMsg.increment); // 3
 
       controller.goToStart();
       expect(feature.state, 0);
@@ -482,7 +482,7 @@ void main() {
     test('back-back-forward replays to correct intermediate state', () {
       // Build: 0 -> 1 -> 2 -> 3 -> 4
       for (var i = 0; i < 4; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
       expect(feature.state, 4);
 
@@ -501,9 +501,9 @@ void main() {
 
     test('goToStart then step forward through entire history', () {
       // Build: 0 -> 1 -> 2 -> 3
-      feature.accept(CounterMsg.increment); // 1
-      feature.accept(CounterMsg.increment); // 2
-      feature.accept(CounterMsg.increment); // 3
+      feature.add(CounterMsg.increment); // 1
+      feature.add(CounterMsg.increment); // 2
+      feature.add(CounterMsg.increment); // 3
 
       controller.goToStart(); // initial state
       expect(feature.state, 0);
@@ -524,8 +524,8 @@ void main() {
     });
 
     test('back-back-back saturates at initial state', () {
-      feature.accept(CounterMsg.increment); // 1
-      feature.accept(CounterMsg.increment); // 2
+      feature.add(CounterMsg.increment); // 1
+      feature.add(CounterMsg.increment); // 2
 
       controller.goBack(); // index 0
       expect(controller.state.navigation.currentIndex, 0);
@@ -542,10 +542,10 @@ void main() {
     });
 
     test('goToEnd after multiple backs restores final state', () {
-      feature.accept(CounterMsg.increment); // 1
-      feature.accept(CounterMsg.increment); // 2
-      feature.accept(CounterMsg.increment); // 3
-      feature.accept(CounterMsg.increment); // 4
+      feature.add(CounterMsg.increment); // 1
+      feature.add(CounterMsg.increment); // 2
+      feature.add(CounterMsg.increment); // 3
+      feature.add(CounterMsg.increment); // 4
 
       controller.goBack(); // index 2, state 3
       controller.goBack(); // index 1, state 2
@@ -558,10 +558,10 @@ void main() {
     });
 
     test('mixed messages: increment, decrement, reset navigated correctly', () {
-      feature.accept(CounterMsg.increment); // 0->1
-      feature.accept(CounterMsg.increment); // 1->2
-      feature.accept(CounterMsg.decrement); // 2->1
-      feature.accept(CounterMsg.reset); // 1->0
+      feature.add(CounterMsg.increment); // 0->1
+      feature.add(CounterMsg.increment); // 1->2
+      feature.add(CounterMsg.decrement); // 2->1
+      feature.add(CounterMsg.reset); // 1->0
 
       // goToStart -> initial state = 0
       controller.goToStart();
@@ -596,7 +596,7 @@ void main() {
 
       // Send 6 messages -> snapshots at 3 and 6
       for (var i = 0; i < 6; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
       expect(feature.state, 6);
 
@@ -627,7 +627,7 @@ void main() {
       // Send 5 messages: states 1,2,3,4,5
       // Snapshots at indices 0(initial), 2(after 2 msgs, state=2), 4(after 4 msgs, state=4)
       for (var i = 0; i < 5; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
 
       // Jump to index 3 – should use snapshot at index 2 (state=2), replay msgs 2,3
@@ -649,7 +649,7 @@ void main() {
       await feature.init();
 
       for (var i = 0; i < 5; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
 
       // Navigate to each position and verify
@@ -696,9 +696,9 @@ void main() {
     });
 
     test('timeline records messages from both features in order', () {
-      counter.accept(CounterMsg.increment);
-      accumulator.accept(AccMsg.append);
-      counter.accept(CounterMsg.increment);
+      counter.add(CounterMsg.increment);
+      accumulator.add(AccMsg.append);
+      counter.add(CounterMsg.increment);
 
       final timeline = controller.state.timeline;
       expect(timeline, hasLength(3));
@@ -708,10 +708,10 @@ void main() {
     });
 
     test('goToStart restores both features to their initial state', () {
-      counter.accept(CounterMsg.increment); // counter: 1
-      accumulator.accept(AccMsg.append); // acc: 'x'
-      counter.accept(CounterMsg.increment); // counter: 2
-      accumulator.accept(AccMsg.append); // acc: 'xx'
+      counter.add(CounterMsg.increment); // counter: 1
+      accumulator.add(AccMsg.append); // acc: 'x'
+      counter.add(CounterMsg.increment); // counter: 2
+      accumulator.add(AccMsg.append); // acc: 'xx'
 
       controller.goToStart(); // initial state
       expect(counter.state, 0);
@@ -719,9 +719,9 @@ void main() {
     });
 
     test('goToEnd restores both features to their final states', () {
-      counter.accept(CounterMsg.increment); // counter: 1
-      accumulator.accept(AccMsg.append); // acc: 'x'
-      counter.accept(CounterMsg.increment); // counter: 2
+      counter.add(CounterMsg.increment); // counter: 1
+      accumulator.add(AccMsg.append); // acc: 'x'
+      counter.add(CounterMsg.increment); // counter: 2
 
       controller.goToStart();
       controller.goToEnd();
@@ -731,10 +731,10 @@ void main() {
     });
 
     test('stepping through interleaved messages restores correct states', () {
-      counter.accept(CounterMsg.increment); // timeline[0]: counter 1
-      accumulator.accept(AccMsg.append); // timeline[1]: acc 'x'
-      counter.accept(CounterMsg.decrement); // timeline[2]: counter 0
-      accumulator.accept(AccMsg.append); // timeline[3]: acc 'xx'
+      counter.add(CounterMsg.increment); // timeline[0]: counter 1
+      accumulator.add(AccMsg.append); // timeline[1]: acc 'x'
+      counter.add(CounterMsg.decrement); // timeline[2]: counter 0
+      accumulator.add(AccMsg.append); // timeline[3]: acc 'xx'
 
       controller.goToStart(); // initial state
       expect(counter.state, 0);
@@ -772,11 +772,11 @@ void main() {
       await counter.init();
       await accumulator.init();
 
-      counter.accept(CounterMsg.increment); // counter:1, timeline[0]
-      accumulator.accept(AccMsg.append); // acc:'x', timeline[1] -> snapshot
+      counter.add(CounterMsg.increment); // counter:1, timeline[0]
+      accumulator.add(AccMsg.append); // acc:'x', timeline[1] -> snapshot
 
-      counter.accept(CounterMsg.increment); // counter:2, timeline[2]
-      accumulator.accept(AccMsg.append); // acc:'xx', timeline[3] -> snapshot
+      counter.add(CounterMsg.increment); // counter:2, timeline[2]
+      accumulator.add(AccMsg.append); // acc:'xx', timeline[3] -> snapshot
 
       // Go to index 2 – should use snapshot from index 2 boundary
       // snapshot[1] has counter=1, acc='x' (taken after 2 messages)
@@ -819,7 +819,7 @@ void main() {
       final feature = createCounter(name: 'c', controller: controller);
       await feature.init();
 
-      feature.accept(CounterMsg.increment); // only 1 event
+      feature.add(CounterMsg.increment); // only 1 event
       controller.goBack(); // needs >= 2 events to go back from live mode
 
       expect(controller.state.navigation.currentIndex, isNull);
@@ -836,8 +836,8 @@ void main() {
       final feature = createCounter(name: 'c', controller: controller);
       await feature.init();
 
-      feature.accept(CounterMsg.increment); // state 1
-      feature.accept(CounterMsg.increment); // state 2
+      feature.add(CounterMsg.increment); // state 1
+      feature.add(CounterMsg.increment); // state 2
 
       controller.goBack(); // index 0 (second-to-last)
       expect(controller.state.navigation.currentIndex, 0);
@@ -859,8 +859,8 @@ void main() {
       );
       await feature.init();
 
-      feature.accept(CounterMsg.increment); // timeline[0]
-      feature.accept(CounterMsg.increment); // timeline[1]
+      feature.add(CounterMsg.increment); // timeline[0]
+      feature.add(CounterMsg.increment); // timeline[1]
       await Future.delayed(Duration.zero);
       effectHandler.handled.clear();
 
@@ -868,7 +868,7 @@ void main() {
       expect(controller.isTimeTraveling, isTrue);
 
       // The timeline length should remain at 2 –
-      // accept calls during replay should not add to timeline.
+      // add calls during replay should not add to timeline.
       expect(controller.state.timeline, hasLength(2));
       expect(effectHandler.handled, isEmpty);
 
@@ -885,9 +885,9 @@ void main() {
       );
       await feature.init();
 
-      feature.accept(CounterMsg.increment); // 101
-      feature.accept(CounterMsg.increment); // 102
-      feature.accept(CounterMsg.decrement); // 101
+      feature.add(CounterMsg.increment); // 101
+      feature.add(CounterMsg.increment); // 102
+      feature.add(CounterMsg.decrement); // 101
 
       controller.goToStart(); // initial state = 100
       expect(feature.state, 100);
@@ -910,8 +910,8 @@ void main() {
       final feature = createCounter(name: 'c', controller: controller);
       await feature.init();
 
-      feature.accept(CounterMsg.increment);
-      feature.accept(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
 
       controller.goToStart();
       expect(controller.isTimeTraveling, isTrue);
@@ -929,7 +929,7 @@ void main() {
       final feature = createCounter(name: 'c', controller: controller);
       await feature.init();
 
-      feature.accept(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
 
       controller.goToEnd();
       controller.goToEnd();
@@ -948,14 +948,14 @@ void main() {
       final feature = createCounter(name: 'c', controller: controller);
       await feature.init();
 
-      feature.accept(CounterMsg.increment); // 1
-      feature.accept(CounterMsg.increment); // 2
+      feature.add(CounterMsg.increment); // 1
+      feature.add(CounterMsg.increment); // 2
 
       controller.goToStart(); // time travel to initial state
       controller.endTimeTravel(); // exit time travel
 
       // Now send more messages – they should be recorded normally
-      feature.accept(CounterMsg.increment); // 3
+      feature.add(CounterMsg.increment); // 3
       expect(controller.state.timeline, hasLength(3));
       expect(feature.state, 3);
       expect(controller.isTimeTraveling, isFalse);
@@ -977,11 +977,11 @@ void main() {
       await counter.init();
       await acc.init();
 
-      counter.accept(CounterMsg.increment); // c:1, t[0]
-      acc.accept(AccMsg.append); // a:'x', t[1]
-      counter.accept(CounterMsg.increment); // c:2, t[2]
-      acc.accept(AccMsg.append); // a:'xx', t[3]
-      counter.accept(CounterMsg.increment); // c:3, t[4]
+      counter.add(CounterMsg.increment); // c:1, t[0]
+      acc.add(AccMsg.append); // a:'x', t[1]
+      counter.add(CounterMsg.increment); // c:2, t[2]
+      acc.add(AccMsg.append); // a:'xx', t[3]
+      counter.add(CounterMsg.increment); // c:3, t[4]
 
       // Go back step by step and verify both
       controller.goBack(); // index 3
@@ -1038,9 +1038,9 @@ void main() {
       await counter.init();
       await acc.init();
 
-      acc.accept(AccMsg.append); // 'startx', t[0]
-      counter.accept(CounterMsg.decrement); // 49, t[1]
-      acc.accept(AccMsg.clear); // '', t[2]
+      acc.add(AccMsg.append); // 'startx', t[0]
+      counter.add(CounterMsg.decrement); // 49, t[1]
+      acc.add(AccMsg.clear); // '', t[2]
 
       controller.goToStart();
       // snapshot has counter=50, acc='start'
@@ -1067,8 +1067,8 @@ void main() {
       await counter.init();
       await acc.init();
 
-      counter.accept(CounterMsg.reset); // effect fires
-      acc.accept(AccMsg.append);
+      counter.add(CounterMsg.reset); // effect fires
+      acc.add(AccMsg.append);
       await Future.delayed(Duration.zero);
 
       expect(effectHandler.handled, [CounterEffect.onReset]);
@@ -1092,8 +1092,8 @@ void main() {
       await counter.init();
       await acc.init();
 
-      counter.accept(CounterMsg.increment); // t[0], counter-only
-      counter.accept(CounterMsg.increment); // t[1], counter-only
+      counter.add(CounterMsg.increment); // t[0], counter-only
+      counter.add(CounterMsg.increment); // t[1], counter-only
 
       // Dispose accumulator – it was never in the timeline, so travel should work
       await acc.dispose();
@@ -1122,7 +1122,7 @@ void main() {
 
       // Send 10 increments: states 1..10
       for (var i = 0; i < 10; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
       expect(feature.state, 10);
 
@@ -1147,7 +1147,7 @@ void main() {
       await feature.init();
 
       for (var i = 0; i < 7; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
 
       controller.goToStart();
@@ -1177,7 +1177,7 @@ void main() {
 
       // Send 20 messages – all should be retained
       for (var i = 0; i < 20; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
 
       expect(controller.state.timeline, hasLength(20));
@@ -1201,7 +1201,7 @@ void main() {
       // Then trim removes timeline[5..9] and snapshot[1]
       // Result: timeline[10..14] (5 events), snapshots at 0(initial from 10), 15
       for (var i = 0; i < 15; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
 
       // Timeline should be limited to 10 events
@@ -1226,7 +1226,7 @@ void main() {
 
       // Send 20 messages – timeline should stabilize at 10 (rounded up from 7)
       for (var i = 0; i < 20; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
 
       // Should be trimmed to 10 (7 rounded up to next multiple of 5)
@@ -1248,7 +1248,7 @@ void main() {
 
       // Send 15 messages
       for (var i = 0; i < 15; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
 
       // Timeline should be exactly 9
@@ -1273,7 +1273,7 @@ void main() {
       // Trim removes first 4 events and first snapshot
       // Result: timeline[4..11] (8 events), snapshots at 0(from index 4, state=4), 8, 12
       for (var i = 0; i < 12; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
 
       expect(controller.state.timeline.length, lessThanOrEqualTo(8));
@@ -1305,7 +1305,7 @@ void main() {
       // After 12: timeline has 12 events, will be trimmed multiple times
       // Final state: timeline[6..11] (6 events)
       for (var i = 0; i < 12; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
 
       expect(controller.state.timeline.length, lessThanOrEqualTo(6));
@@ -1345,8 +1345,8 @@ void main() {
 
       // Interleave messages from both features
       for (var i = 0; i < 10; i++) {
-        counter.accept(CounterMsg.increment);
-        acc.accept(AccMsg.append);
+        counter.add(CounterMsg.increment);
+        acc.add(AccMsg.append);
       }
 
       // Timeline should have 20 events, trimmed to 8
@@ -1374,7 +1374,7 @@ void main() {
 
       // Send 15 messages
       for (var i = 0; i < 15; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
 
       // Should keep exactly 5 events (one chunk)
@@ -1396,7 +1396,7 @@ void main() {
 
       // Send many messages
       for (var i = 0; i < 20; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
 
       // Limit of 1 should round up to 5 (snapshotAtEach)
@@ -1418,7 +1418,7 @@ void main() {
 
       // Send only 10 messages, well under the limit
       for (var i = 0; i < 10; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
 
       // All 10 should be retained
@@ -1439,21 +1439,21 @@ void main() {
 
       // Send 7 messages (before snapshot boundary)
       for (var i = 0; i < 7; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
 
       // No trimming should have happened yet (7 < 8, and no snapshot created yet)
       expect(controller.state.timeline, hasLength(7));
 
       // Send 1 more to trigger snapshot at index 8
-      feature.accept(CounterMsg.increment);
+      feature.add(CounterMsg.increment);
 
       // Now we have 8 messages, snapshot created, no trimming yet (8 <= 8)
       expect(controller.state.timeline, hasLength(8));
 
       // Send 4 more to trigger next snapshot at index 12
       for (var i = 0; i < 4; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
 
       // Now trimming should have happened (12 > 8)
@@ -1478,7 +1478,7 @@ void main() {
       // Snapshots: trimmed to [snapshot_at_9, snapshot_at_12, snapshot_at_15]
       // But first snapshot is always the "initial" for navigation purposes
       for (var i = 0; i < 15; i++) {
-        feature.accept(CounterMsg.increment);
+        feature.add(CounterMsg.increment);
       }
 
       controller.goToStart();

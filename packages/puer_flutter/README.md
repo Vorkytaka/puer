@@ -84,7 +84,7 @@ class CounterPage extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => feature.accept(Increment()),
+        onPressed: () => feature.add(Increment()),
         child: const Icon(Icons.add),
       ),
     );
@@ -134,7 +134,7 @@ FeatureProvider<CounterFeature>.value(
 
 ```dart
 final feature = FeatureProvider.of<CounterFeature>(context);
-feature.accept(Increment());
+feature.add(Increment());
 ```
 
 #### Lifecycle

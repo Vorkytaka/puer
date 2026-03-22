@@ -311,7 +311,7 @@ final class TimeTravelController {
       for (int i = from; i <= index; i++) {
         final event = _stateSubject.value.timeline[i];
         final feature = state.features[event.featureName]!;
-        feature.accept(event.message);
+        feature.add(event.message);
       }
     }
   }
@@ -373,13 +373,13 @@ final class _TimeTravelFeature<State, Message, Effect>
     return super.dispose();
   }
 
-  /// Overrides accept to suppress effects during time travel mode.
+  /// Overrides add to suppress effects during time travel mode.
   ///
   /// When time traveling is active, state updates are applied but effects
   /// are not emitted. This prevents side effects during timeline navigation.
   /// Messages are also not recorded to the timeline during time travel.
   @override
-  void accept(Message message) {
+  void add(Message message) {
     final oldState = state;
     final (newState, effects) = update(state, message);
 

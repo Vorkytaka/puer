@@ -83,9 +83,9 @@ abstract interface class ReadOnlyFeature<State, Message, Effect> {
 /// final readOnlyFeature = ReadOnlyFeatureWrapper(feature: feature);
 /// childComponent.setFeature(readOnlyFeature);
 ///
-/// // Child can read state but cannot call accept/init/dispose
+/// // Child can read state but cannot call add/init/dispose
 /// print(readOnlyFeature.state); // ✅ Works
-/// // readOnlyFeature.accept('msg'); // ❌ Compile error - method not available
+/// // readOnlyFeature.add('msg'); // ❌ Compile error - method not available
 /// ```
 ///
 /// ### Pattern
@@ -149,7 +149,7 @@ final class ReadOnlyFeatureWrapper<State, Message, Effect>
 /// print(readOnly.state); // ✅ Works
 ///
 /// // Cannot mutate
-/// // readOnly.accept('msg'); // ❌ Compile error
+/// // readOnly.add('msg'); // ❌ Compile error
 /// ```
 ///
 /// ### Use Cases

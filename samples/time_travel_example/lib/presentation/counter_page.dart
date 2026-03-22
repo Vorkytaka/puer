@@ -39,14 +39,14 @@ class CounterPage extends StatelessWidget {
               children: [
                 CounterButton(
                   onPressed: () =>
-                      feature.accept(const CounterMessage.decrement()),
+                      feature.add(const CounterMessage.decrement()),
                   text: 'Decrement',
                   icon: const Icon(Icons.remove),
                 ),
                 const SizedBox(width: 24),
                 CounterButton(
                   onPressed: () =>
-                      feature.accept(const CounterMessage.increment()),
+                      feature.add(const CounterMessage.increment()),
                   text: 'Increment',
                   icon: const Icon(Icons.add),
                 ),
@@ -71,7 +71,7 @@ final class LoadingButton extends StatelessWidget {
       builder: (context, isLoading) => ElevatedButton.icon(
         onPressed: isLoading
             ? null
-            : () => context.read<CounterFeature>().accept(
+            : () => context.read<CounterFeature>().add(
                 const CounterMessage.requestLoading(),
               ),
         icon: isLoading

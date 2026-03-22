@@ -338,21 +338,21 @@ Future<void> main() async {
   print('\n=== User interactions ===\n');
 
   // Simulate user interactions
-  feature.accept(Increment());
+  feature.add(Increment());
   await Future<void>.delayed(const Duration(milliseconds: 500));
 
-  feature.accept(Increment());
+  feature.add(Increment());
   await Future<void>.delayed(const Duration(milliseconds: 500));
 
-  feature.accept(Decrement());
+  feature.add(Decrement());
   await Future<void>.delayed(const Duration(milliseconds: 500));
 
-  feature.accept(Reset());
+  feature.add(Reset());
   await Future<void>.delayed(const Duration(milliseconds: 500));
 
   // Load saved value again
   print('\n=== Loading saved value ===\n');
-  feature.accept(LoadSaved());
+  feature.add(LoadSaved());
   await Future<void>.delayed(const Duration(milliseconds: 800));
 
   print('\n=== Cleaning up ===\n');

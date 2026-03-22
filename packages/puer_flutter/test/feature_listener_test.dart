@@ -72,14 +72,14 @@ void main() {
     expect(listenerCallCount, 0);
 
     // Trigger state change
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
     await tester.pumpAndSettle();
 
     expect(listenerCallCount, 1);
     expect(states, [1]);
 
     // Trigger another state change
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
     await tester.pumpAndSettle();
 
     expect(listenerCallCount, 2);
@@ -109,7 +109,7 @@ void main() {
     expect(listenerCallCount, 0);
 
     // Trigger state change that returns the same state
-    mockFeature.accept('same');
+    mockFeature.add('same');
     await tester.pumpAndSettle();
 
     // Listener should not be called because state didn't change
@@ -140,21 +140,21 @@ void main() {
     expect(listenerCallCount, 0);
 
     // Change to 1 (odd) - should not trigger listener
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
     await tester.pumpAndSettle();
 
     expect(listenerCallCount, 0);
     expect(states, isEmpty);
 
     // Change to 2 (even) - should trigger listener
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
     await tester.pumpAndSettle();
 
     expect(listenerCallCount, 1);
     expect(states, [2]);
 
     // Change to 3 (odd) - should not trigger listener
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
     await tester.pumpAndSettle();
 
     expect(listenerCallCount, 1);
@@ -182,9 +182,9 @@ void main() {
     );
 
     // Trigger multiple rapid state changes
-    mockFeature.accept('inc');
-    mockFeature.accept('inc');
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
+    mockFeature.add('inc');
+    mockFeature.add('inc');
 
     await tester.pumpAndSettle();
 
@@ -209,7 +209,7 @@ void main() {
       ),
     );
 
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
     await tester.pumpAndSettle();
 
     expect(listenerCallCount, 1);
@@ -222,7 +222,7 @@ void main() {
     );
 
     // Trigger state change after disposal
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
     await tester.pumpAndSettle();
 
     // Listener should not be called after disposal
