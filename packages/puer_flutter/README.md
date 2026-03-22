@@ -56,7 +56,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: FeatureProvider<CounterFeature>.create(
+      home: FeatureProvider<CounterFeature>(
         create: (context) => Feature<CounterState, CounterMessage, CounterEffect>(
           initialState: const CounterState(count: 0),
           update: counterUpdate,
@@ -107,7 +107,7 @@ class CounterPage extends StatelessWidget {
 **Create mode** — Creates and initializes a feature:
 
 ```dart
-FeatureProvider<CounterFeature>.create(
+FeatureProvider<CounterFeature>(
   create: (context) => Feature<CounterState, CounterMessage, CounterEffect>(
     initialState: const CounterState(count: 0),
     update: counterUpdate,
@@ -392,7 +392,7 @@ FeatureEffectListener<TodoFeature, TodoEffect, NavigateToDetail>(
 You can compose widgets to handle both state changes and effects:
 
 ```dart
-FeatureProvider<TodoFeature>.create(
+FeatureProvider<TodoFeature>(
   create: (context) => todoFeature,
   child: FeatureListener<TodoFeature, TodoState>(
     listenWhen: (previous, current) => previous.error != current.error,

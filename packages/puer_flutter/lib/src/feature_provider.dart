@@ -20,7 +20,7 @@ typedef CreateFeature<F extends Feature> = F Function(BuildContext context);
 /// There are two ways to use [FeatureProvider]:
 /// 1. **Create Mode**: Instantiate a [Feature] dynamically:
 ///    ```dart
-///    FeatureProvider.create(
+///    FeatureProvider(
 ///      create: (context) => MyFeature(...),
 ///      child: MyWidget(),
 ///    );
@@ -47,7 +47,7 @@ class FeatureProvider<F extends Feature> extends StatelessWidget {
   final Widget child;
 
   /// If `true`, the [Feature] will only be instantiated when first accessed.
-  /// Defaults to `false`.
+  /// Defaults to `true`.
   final bool lazy;
 
   /// Creates a [FeatureProvider] using a factory function.
@@ -55,10 +55,10 @@ class FeatureProvider<F extends Feature> extends StatelessWidget {
   /// - [create]: A function to create the [Feature].
   /// - [child]: The widget subtree that will have access to the [Feature].
   /// - [lazy]: If `true`, delays creation until first accessed.
-  const FeatureProvider.create({
+  const FeatureProvider({
     required CreateFeature<F> create,
     required this.child,
-    this.lazy = false,
+    this.lazy = true,
     super.key,
   })  : _value = null,
         _create = create;
@@ -67,14 +67,13 @@ class FeatureProvider<F extends Feature> extends StatelessWidget {
   ///
   /// - [value]: The [Feature] instance to be provided.
   /// - [child]: The widget subtree that will have access to the [Feature].
-  /// - [lazy]: If `true`, delays any associated actions until first accessed.
   const FeatureProvider.value({
     required F value,
     required this.child,
-    this.lazy = false,
     super.key,
   })  : _value = value,
-        _create = null;
+        _create = null,
+        lazy = true;
 
   @override
   Widget build(BuildContext context) {
