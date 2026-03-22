@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: FeatureProvider<CounterFeature>.create(
+      home: FeatureProvider<CounterFeature>(
         create: (context) =>
             Feature<CounterState, CounterMessage, CounterEffect>(
           initialState: const CounterState(count: 0),

@@ -955,7 +955,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: FeatureProvider<CounterFeature>.create(
+      home: FeatureProvider<CounterFeature>(
         create: (_) => Feature<CounterState, CounterMessage, CounterEffect>(
           initialState: const CounterState(count: 0),
           update: counterUpdate,
@@ -1001,7 +1001,7 @@ class CounterPage extends StatelessWidget {
 ```
 
 **Lifecycle:**
-- `FeatureProvider.create` automatically calls `feature.init()` when the widget enters the tree and `feature.dispose()` when it leaves.
+- `FeatureProvider` (create mode) automatically calls `feature.init()` when the widget enters the tree and `feature.dispose()` when it leaves.
 - If you create a feature manually outside Flutter (or in tests), you must call `init()` and `dispose()` yourself.
 
 ---
@@ -1020,7 +1020,7 @@ Without value equality, widgets may rebuild unnecessarily (if you emit a new ins
 
 **⚠️ Resource management**
 
-Always call `dispose()` when done with a manually-created feature. Feature holds internal stream controllers that must be closed. Safe to call `dispose()` multiple times (idempotent). In Flutter, `FeatureProvider.create()` handles `init()` and `dispose()` automatically.
+Always call `dispose()` when done with a manually-created feature. Feature holds internal stream controllers that must be closed. Safe to call `dispose()` multiple times (idempotent). In Flutter, `FeatureProvider` (create mode) handles `init()` and `dispose()` automatically.
 
 ---
 
@@ -1165,6 +1165,6 @@ Effect handlers require mocks for their dependencies (repositories, services), b
 1. **Start with the counter example** in this README. Create the `Feature`, write the `update` function, call `accept`, and observe state changes. No Flutter needed yet.
 2. **Write tests.** Use `puer_test` to verify your `update` function with `.test()`. Add a few test cases for different messages.
 3. **Add effects.** Introduce a sealed `Effect` type and write your first `EffectHandler`. Test it independently with `handler.test()`.
-4. **Integrate with Flutter.** Wrap your feature in `FeatureProvider.create` and replace manual stream subscriptions with `FeatureBuilder` and `FeatureListener`.
+4. **Integrate with Flutter.** Wrap your feature in `FeatureProvider` and replace manual stream subscriptions with `FeatureBuilder` and `FeatureListener`.
 5. **Enable time travel.** Swap `Feature(...)` for `TimeTravelFeature(name: 'counter', ...)` and open the DevTools extension to inspect the message timeline.
 6. **Compose effect handlers.** Explore `puer_effect_handlers` to add debouncing, sequencing, or isolate execution to an existing handler with a single extension method call.

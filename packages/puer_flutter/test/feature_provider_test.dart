@@ -19,10 +19,10 @@ void main() {
       when(() => mockFeature.dispose()).thenAnswer((_) => Future.value());
     });
 
-    testWidgets('FeatureProvider.create initializes feature on creation',
+    testWidgets('FeatureProvider initializes feature on creation',
         (tester) async {
       await tester.pumpWidget(
-        FeatureProvider<MockFeature>.create(
+        FeatureProvider<MockFeature>(
           create: (_) => mockFeature,
           child: Builder(
             builder: (context) {
@@ -53,10 +53,10 @@ void main() {
     });
 
     testWidgets(
-        'FeatureProvider.create with lazy initialization does not call init until accessed',
+        'FeatureProvider with lazy initialization does not call init until accessed',
         (tester) async {
       await tester.pumpWidget(
-        FeatureProvider.create(
+        FeatureProvider(
           create: (_) => mockFeature,
           lazy: true,
           child: Container(),
@@ -66,7 +66,7 @@ void main() {
       verifyNever(() => mockFeature.init());
 
       await tester.pumpWidget(
-        FeatureProvider.create(
+        FeatureProvider(
           create: (_) => mockFeature,
           lazy: true,
           child: Builder(
