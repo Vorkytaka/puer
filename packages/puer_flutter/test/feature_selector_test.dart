@@ -60,7 +60,7 @@ void main() {
     expect(find.text('10'), findsOneWidget);
     expect(buildCount, 1);
 
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
 
     await tester.pumpAndSettle();
 
@@ -91,7 +91,7 @@ void main() {
     expect(find.text('10'), findsOneWidget);
     expect(buildCount, 1);
 
-    mockFeature.accept('str');
+    mockFeature.add('str');
 
     await tester.pumpAndSettle();
 

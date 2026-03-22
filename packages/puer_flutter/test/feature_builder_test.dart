@@ -86,14 +86,14 @@ void main() {
     expect(find.text('State: 0'), findsOneWidget);
 
     // Trigger state change
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
     await tester.pumpAndSettle();
 
     expect(buildCount, 2);
     expect(find.text('State: 1'), findsOneWidget);
 
     // Trigger another state change
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
     await tester.pumpAndSettle();
 
     expect(buildCount, 3);
@@ -122,7 +122,7 @@ void main() {
     expect(find.text('State: 0'), findsOneWidget);
 
     // Trigger state change that returns the same state
-    mockFeature.accept('same');
+    mockFeature.add('same');
     await tester.pumpAndSettle();
 
     // Should not rebuild because state didn't change
@@ -152,21 +152,21 @@ void main() {
     expect(find.text('State: 0'), findsOneWidget);
 
     // Change to 1 (odd) - should not rebuild
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
     await tester.pumpAndSettle();
 
     expect(buildCount, 1);
     expect(find.text('State: 0'), findsOneWidget);
 
     // Change to 2 (even) - should rebuild
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
     await tester.pumpAndSettle();
 
     expect(buildCount, 2);
     expect(find.text('State: 2'), findsOneWidget);
 
     // Change to 3 (odd) - should not rebuild
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
     await tester.pumpAndSettle();
 
     expect(buildCount, 2);
@@ -194,13 +194,13 @@ void main() {
     expect(buildCount, 1);
 
     // Trigger multiple state changes one by one
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
     await tester.pump();
 
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
     await tester.pump();
 
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
     await tester.pumpAndSettle();
 
     // Should build once for each state change plus initial
@@ -267,7 +267,7 @@ void main() {
     expect(find.text('Footer'), findsOneWidget);
 
     // Trigger state change
-    mockFeature.accept('inc');
+    mockFeature.add('inc');
     await tester.pumpAndSettle();
 
     expect(buildCount, 2);

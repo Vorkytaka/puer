@@ -102,9 +102,9 @@ base class FeatureBase<State, Message, Effect>
   }
 
   @override
-  void accept(Message message) {
+  void add(Message message) {
     if (_isDisposed) {
-      throw StateError('Cannot accept message after FeatureBase is disposed.');
+      throw StateError('Cannot add message after FeatureBase is disposed.');
     }
 
     final oldState = state;
@@ -172,7 +172,7 @@ base class FeatureBase<State, Message, Effect>
   /// This will not send effect to the handlers that was added as wrapper
   void _handleEffect(Effect effect) {
     for (final handler in effectHandlers) {
-      handler(effect, accept);
+      handler(effect, add);
     }
   }
 }

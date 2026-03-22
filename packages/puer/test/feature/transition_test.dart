@@ -34,7 +34,7 @@ void main() {
       final transitions = <Transition<int, String, String>>[];
       feature.transitions.listen(transitions.add);
 
-      feature.accept('increment');
+      feature.add('increment');
 
       await Future.delayed(Duration.zero);
       expect(transitions.length, 1);
@@ -48,7 +48,7 @@ void main() {
       final transitions = <Transition<int, String, String>>[];
       feature.transitions.listen(transitions.add);
 
-      feature.accept('no_change');
+      feature.add('no_change');
 
       await Future.delayed(Duration.zero);
       expect(transitions.length, 1);
@@ -62,7 +62,7 @@ void main() {
       final transitions = <Transition<int, String, String>>[];
       feature.transitions.listen(transitions.add);
 
-      feature.accept('same_state');
+      feature.add('same_state');
 
       await Future.delayed(Duration.zero);
       expect(transitions.length, 1);
@@ -78,7 +78,7 @@ void main() {
       final transitions = <Transition<int, String, String>>[];
       feature.transitions.listen(transitions.add);
 
-      feature.accept('with_effects');
+      feature.add('with_effects');
 
       await Future.delayed(Duration.zero);
       expect(transitions.length, 1);
@@ -92,7 +92,7 @@ void main() {
       final transitions = <Transition<int, String, String>>[];
       feature.transitions.listen(transitions.add);
 
-      feature.accept('only_effects');
+      feature.add('only_effects');
 
       await Future.delayed(Duration.zero);
       expect(transitions.length, 1);
@@ -106,9 +106,9 @@ void main() {
       final transitions = <Transition<int, String, String>>[];
       feature.transitions.listen(transitions.add);
 
-      feature.accept('increment');
-      feature.accept('increment');
-      feature.accept('no_change');
+      feature.add('increment');
+      feature.add('increment');
+      feature.add('no_change');
 
       await Future.delayed(Duration.zero);
       expect(transitions.length, 3);
@@ -140,7 +140,7 @@ void main() {
       await feature.dispose();
 
       expect(
-        () => feature.accept('increment'),
+        () => feature.add('increment'),
         throwsA(isA<StateError>()),
       );
     });

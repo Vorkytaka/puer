@@ -38,7 +38,7 @@ void main() {
       test('provides access to current state', () {
         expect(readOnlyFeature.state, equals(0));
 
-        feature.accept('increment');
+        feature.add('increment');
 
         expect(readOnlyFeature.state, equals(1));
       });
@@ -47,7 +47,7 @@ void main() {
         final states = <int>[];
         readOnlyFeature.stateStream.listen(states.add);
 
-        feature.accept('increment');
+        feature.add('increment');
         await Future<void>.delayed(Duration.zero);
 
         expect(states, equals([0, 1]));
@@ -57,7 +57,7 @@ void main() {
         final effects = <String>[];
         readOnlyFeature.effects.listen(effects.add);
 
-        feature.accept('with_effect');
+        feature.add('with_effect');
         await Future<void>.delayed(Duration.zero);
 
         expect(effects, equals(['effect1']));
@@ -67,7 +67,7 @@ void main() {
         final transitions = <Transition<int, String, String>>[];
         readOnlyFeature.transitions.listen(transitions.add);
 
-        feature.accept('increment');
+        feature.add('increment');
         await Future<void>.delayed(Duration.zero);
 
         expect(transitions, hasLength(1));
@@ -107,7 +107,7 @@ void main() {
         expect(readOnlyFeature is Disposable, isFalse);
 
         // This is a compile-time check - the following would not compile:
-        // readOnlyFeature.accept('message');
+        // readOnlyFeature.add('message');
         // readOnlyFeature.init();
         // readOnlyFeature.dispose();
       });
@@ -124,7 +124,7 @@ void main() {
         wrapper1.stateStream.listen(states1.add);
         wrapper2.stateStream.listen(states2.add);
 
-        feature.accept('increment');
+        feature.add('increment');
         await Future<void>.delayed(Duration.zero);
 
         // Both wrappers should see the same state changes
@@ -138,7 +138,7 @@ void main() {
 
         expect(wrapper2.state, equals(0));
 
-        feature.accept('increment');
+        feature.add('increment');
 
         expect(wrapper2.state, equals(1));
       });
@@ -180,7 +180,7 @@ void main() {
 
       expect(readOnly.state, equals(42));
 
-      feature.accept('double');
+      feature.add('double');
 
       expect(readOnly.state, equals(84));
     });
@@ -191,7 +191,7 @@ void main() {
       final states = <int>[];
       readOnly.stateStream.listen(states.add);
 
-      feature.accept('double');
+      feature.add('double');
       await Future<void>.delayed(Duration.zero);
 
       expect(states, equals([42, 84]));
@@ -214,7 +214,7 @@ void main() {
 
       expect(readOnly2.state, equals(42));
 
-      feature.accept('double');
+      feature.add('double');
 
       expect(readOnly2.state, equals(84));
     });

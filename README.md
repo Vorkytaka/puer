@@ -65,7 +65,7 @@ Every state change follows the same cycle:
 
 **Data flow cycle:**
 
-1. **UI sends a Message:** The UI sends a `Message` to the feature when the user interacts with it (`feature.accept(message)`).
+1. **UI sends a Message:** The UI sends a `Message` to the feature when the user interacts with it (`feature.add(message)`).
 2. **State updates:** The `update` function processes this `Message` alongside the `currentState`, returning:
    - A new `State` (if it changes).
    - A list of tasks (`Effects`) to be performed.
@@ -716,7 +716,7 @@ final feature = Feature<CounterState, CounterMessage, Never>(
 );
 
 feature.init();
-feature.accept(Increment());
+feature.add(Increment());
 print(feature.state.count);  // 1
 ```
 
@@ -805,7 +805,7 @@ final feature = Feature<CounterState, CounterMessage, CounterEffect>(
 );
 
 feature.init();
-feature.accept(Increment());
+feature.add(Increment());
 // update runs (synchronous), state changes, SaveCount effect is emitted
 // SaveCountHandler receives SaveCount, performs async save
 ```
@@ -983,12 +983,12 @@ class CounterPage extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               FloatingActionButton(
-                onPressed: () => feature.accept(Increment()),
+                onPressed: () => feature.add(Increment()),
                 child: const Icon(Icons.add),
               ),
               const SizedBox(height: 8),
               FloatingActionButton(
-                onPressed: () => feature.accept(Decrement()),
+                onPressed: () => feature.add(Decrement()),
                 child: const Icon(Icons.remove),
               ),
             ],
@@ -1162,9 +1162,10 @@ Effect handlers require mocks for their dependencies (repositories, services), b
 
 **Suggested learning path**
 
-1. **Start with the counter example** in this README. Create the `Feature`, write the `update` function, call `accept`, and observe state changes. No Flutter needed yet.
+1. **Start with the counter example** in this README. Create the `Feature`, write the `update` function, call `add`, and observe state changes. No Flutter needed yet.
 2. **Write tests.** Use `puer_test` to verify your `update` function with `.test()`. Add a few test cases for different messages.
 3. **Add effects.** Introduce a sealed `Effect` type and write your first `EffectHandler`. Test it independently with `handler.test()`.
 4. **Integrate with Flutter.** Wrap your feature in `FeatureProvider` and replace manual stream subscriptions with `FeatureBuilder` and `FeatureListener`.
 5. **Enable time travel.** Swap `Feature(...)` for `TimeTravelFeature(name: 'counter', ...)` and open the DevTools extension to inspect the message timeline.
 6. **Compose effect handlers.** Explore `puer_effect_handlers` to add debouncing, sequencing, or isolate execution to an existing handler with a single extension method call.
+

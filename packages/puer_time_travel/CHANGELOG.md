@@ -1,5 +1,6 @@
 ## NEXT
 
+- **Breaking:** Rename `Feature.accept` to `Feature.add` (#59)
 - Export `puer` from this package (#24)
 - Assert on unique names in time travel controller (#39)
 

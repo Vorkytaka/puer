@@ -33,7 +33,7 @@ void main() {
       final states = <int>[];
       feature.stateStream.listen(states.add);
 
-      feature.accept('noop');
+      feature.add('noop');
 
       await Future.delayed(Duration.zero);
       expect(states, [0]);
@@ -43,7 +43,7 @@ void main() {
       final states = <int>[];
       feature.stateStream.listen(states.add);
 
-      feature.accept('same');
+      feature.add('same');
 
       await Future.delayed(Duration.zero);
       expect(states, [0]);
@@ -53,7 +53,7 @@ void main() {
       final states = <int>[];
       feature.stateStream.listen(states.add);
 
-      feature.accept('different');
+      feature.add('different');
 
       await Future.delayed(Duration.zero);
       expect(states, [0, 1]);
@@ -63,7 +63,7 @@ void main() {
       final effects = <String>[];
       feature.effects.listen(effects.add);
 
-      feature.accept('effects');
+      feature.add('effects');
 
       await Future.delayed(Duration.zero);
       expect(effects, ['effect1', 'effect2']);
@@ -76,7 +76,7 @@ void main() {
       feature.stateStream.listen(states.add);
       feature.effects.listen(effects.add);
 
-      feature.accept('state_and_effects');
+      feature.add('state_and_effects');
 
       await Future.delayed(Duration.zero);
       expect(states, [0, 1]);

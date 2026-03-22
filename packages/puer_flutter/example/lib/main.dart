@@ -43,7 +43,7 @@ class CounterPage extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => feature.accept(Increment()),
+        onPressed: () => feature.add(Increment()),
         child: const Icon(Icons.add),
       ),
     );

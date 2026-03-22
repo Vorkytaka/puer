@@ -57,7 +57,7 @@ abstract interface class Feature<State, Message, Effect>
   ///
   /// Invoked to handle messages that may trigger state updates or effects.
   /// This method will use Update function to handle changes and send result forward.
-  void accept(Message message);
+  void add(Message message);
 
   /// Initializes the feature and prepares it for usage.
   ///
