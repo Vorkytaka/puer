@@ -63,10 +63,10 @@ final class MapEffectHandler<InnerEffect, InnerMessage, OuterEffect,
   final EffectHandler<InnerEffect, InnerMessage> _effectHandler;
 
   /// Converts an [OuterEffect] to an [InnerEffect] before delegating to [_effectHandler].
-  final Transform<OuterEffect, InnerEffect> _effectMapper;
+  final Transform<OuterEffect, InnerEffect?> _effectMapper;
 
   /// Converts an [InnerMessage] emitted by [_effectHandler] to an [OuterMessage].
-  final Transform<InnerMessage, OuterMessage> _messageMapper;
+  final Transform<InnerMessage, OuterMessage?> _messageMapper;
 
   /// Creates a new [MapEffectHandler].
   ///
@@ -75,8 +75,8 @@ final class MapEffectHandler<InnerEffect, InnerMessage, OuterEffect,
   /// - [messageMapper]: Maps [InnerMessage] → [OuterMessage] for every emitted message.
   MapEffectHandler({
     required EffectHandler<InnerEffect, InnerMessage> effectHandler,
-    required Transform<OuterEffect, InnerEffect> effectMapper,
-    required Transform<InnerMessage, OuterMessage> messageMapper,
+    required Transform<OuterEffect, InnerEffect?> effectMapper,
+    required Transform<InnerMessage, OuterMessage?> messageMapper,
   })  : _effectHandler = effectHandler,
         _effectMapper = effectMapper,
         _messageMapper = messageMapper;
@@ -97,12 +97,18 @@ final class MapEffectHandler<InnerEffect, InnerMessage, OuterEffect,
   FutureOr<void> call(
     OuterEffect effect,
     MsgEmitter<OuterMessage> emit,
-  ) {
+  ) async {
     final innerEffect = _effectMapper(effect);
+
+    if (innerEffect == null) {
+      return;
+    }
 
     void innerEmit(InnerMessage message) {
       final outerMessage = _messageMapper(message);
-      emit(outerMessage);
+      if (outerMessage != null) {
+        emit(outerMessage);
+      }
     }
 
     return _effectHandler.call(innerEffect, innerEmit);
@@ -135,8 +141,8 @@ extension MapEffectHandlerExt<InnerEffect, InnerMessage>
   /// - [effectMapper]: Converts an incoming [OuterEffect] to [InnerEffect].
   /// - [messageMapper]: Converts an emitted [InnerMessage] to [OuterMessage].
   EffectHandler<OuterEffect, OuterMessage> map<OuterEffect, OuterMessage>({
-    required Transform<OuterEffect, InnerEffect> effectMapper,
-    required Transform<InnerMessage, OuterMessage> messageMapper,
+    required Transform<OuterEffect, InnerEffect?> effectMapper,
+    required Transform<InnerMessage, OuterMessage?> messageMapper,
   }) {
     return MapEffectHandler(
       effectHandler: this,
