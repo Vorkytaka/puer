@@ -155,17 +155,25 @@ final class MapEffectHandler<InnerEffect, InnerMessage, OuterEffect,
   FutureOr<void> call(
     OuterEffect effect,
     MsgEmitter<OuterMessage> emit,
-  ) async {
-    final innerEffect = _effectMapper?.call(effect) ??
-        _defaultTransformer<OuterEffect, InnerEffect>(effect);
+  ) {
+    final InnerEffect? innerEffect;
+    if (_effectMapper != null) {
+      innerEffect = _effectMapper(effect);
+    } else {
+      innerEffect = _defaultTransformer<OuterEffect, InnerEffect>(effect);
+    }
 
     if (innerEffect == null) {
-      return;
+      return null;
     }
 
     void innerEmit(InnerMessage message) {
-      final outerMessage = _messageMapper?.call(message) ??
-          _defaultTransformer<InnerMessage, OuterMessage>(message);
+      final OuterMessage? outerMessage;
+      if (_messageMapper != null) {
+        outerMessage = _messageMapper(message);
+      } else {
+        outerMessage = _defaultTransformer<InnerMessage, OuterMessage>(message);
+      }
 
       if (outerMessage != null) {
         emit(outerMessage);
