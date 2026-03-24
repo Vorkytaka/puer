@@ -12,7 +12,7 @@ void main() {
         receivedInnerEffect = effect;
       });
 
-      final handler = MapEffectHandler(
+      final handler = MapEffectHandler<String, String, String, String>(
         effectHandler: inner,
         effectMapper: (String outer) => 'mapped:$outer',
         messageMapper: (String inner) => inner,
@@ -166,6 +166,146 @@ void main() {
       handler('ping', emitted.add);
 
       expect(emitted, ['reply_to_ping']);
+    });
+
+    group('optional mappers / _defaultTransformer', () {
+      test('omitting effectMapper uses type cast — passes when types match',
+          () {
+        String? receivedInnerEffect;
+        final inner = _CapturingHandler(onCall: (effect, emit) {
+          receivedInnerEffect = effect;
+        });
+
+        // No effectMapper: OuterEffect == String == InnerEffect, cast succeeds.
+        final handler = MapEffectHandler<String, String, String, String>(
+          effectHandler: inner,
+          messageMapper: (String inner) => inner,
+        );
+
+        handler('hello', (_) {});
+
+        expect(receivedInnerEffect, 'hello');
+      });
+
+      test('omitting messageMapper uses type cast — passes when types match',
+          () {
+        final inner = _CapturingHandler(onCall: (effect, emit) {
+          emit('msg');
+        });
+
+        final emitted = <String>[];
+        // No messageMapper: InnerMessage == String == OuterMessage, cast succeeds.
+        final handler = MapEffectHandler<String, String, String, String>(
+          effectHandler: inner,
+          effectMapper: (String outer) => outer,
+        );
+
+        handler('effect', emitted.add);
+
+        expect(emitted, ['msg']);
+      });
+
+      test('omitting both mappers uses type cast for both directions', () {
+        final inner = _CapturingHandler(onCall: (effect, emit) {
+          emit('reply_to_$effect');
+        });
+
+        final emitted = <String>[];
+        // All types are String — no mappers needed.
+        final handler = MapEffectHandler<String, String, String, String>(
+          effectHandler: inner,
+        );
+
+        handler('ping', emitted.add);
+
+        expect(emitted, ['reply_to_ping']);
+      });
+
+      test('effectMapper returning null drops the effect silently', () {
+        var innerCalled = false;
+        final inner = _CapturingHandler(onCall: (effect, emit) {
+          innerCalled = true;
+        });
+
+        final handler = MapEffectHandler(
+          effectHandler: inner,
+          effectMapper: (String outer) => null,
+          messageMapper: (String inner) => inner,
+        );
+
+        handler('effect', (_) {});
+
+        expect(innerCalled, isFalse);
+      });
+
+      test('messageMapper returning null drops the message silently', () {
+        final inner = _CapturingHandler(onCall: (effect, emit) {
+          emit('msg');
+        });
+
+        final emitted = <String>[];
+        final handler = MapEffectHandler<String, String, String, String>(
+          effectHandler: inner,
+          effectMapper: (String outer) => outer,
+          messageMapper: (String inner) => null,
+        );
+
+        handler('effect', emitted.add);
+
+        expect(emitted, isEmpty);
+      });
+
+      test('omitting effectMapper drops effect when cast fails (type mismatch)',
+          () {
+        var innerCalled = false;
+        final inner = _IntHandler(onCall: (effect, emit) {
+          innerCalled = true;
+        });
+
+        // OuterEffect is String, InnerEffect is int — cast will fail at runtime.
+        final handler = MapEffectHandler<int, int, String, String>(
+          effectHandler: inner,
+          messageMapper: (int inner) => '$inner',
+        );
+
+        handler('not-an-int', (_) {});
+
+        expect(innerCalled, isFalse);
+      });
+
+      test(
+          'omitting messageMapper drops message when cast fails (type mismatch)',
+          () {
+        final inner = _IntHandler(onCall: (effect, emit) {
+          emit(42);
+        });
+
+        final emitted = <String>[];
+        // InnerMessage is int, OuterMessage is String — cast will fail at runtime.
+        final handler = MapEffectHandler<int, int, int, String>(
+          effectHandler: inner,
+          effectMapper: (int outer) => outer,
+        );
+
+        handler(1, emitted.add);
+
+        expect(emitted, isEmpty);
+      });
+
+      test('returns null synchronously when effect is dropped (null mapper)',
+          () {
+        final inner = _CapturingHandler(onCall: (effect, emit) {});
+
+        final handler = MapEffectHandler(
+          effectHandler: inner,
+          effectMapper: (String outer) => null,
+          messageMapper: (String inner) => inner,
+        );
+
+        final result = handler('effect', (_) {});
+
+        expect(result, isNull);
+      });
     });
   });
 
