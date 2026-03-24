@@ -63,10 +63,10 @@ final class MapEffectHandler<InnerEffect, InnerMessage, OuterEffect,
   final EffectHandler<InnerEffect, InnerMessage> _effectHandler;
 
   /// Converts an [OuterEffect] to an [InnerEffect] before delegating to [_effectHandler].
-  final Transform<OuterEffect, InnerEffect?> _effectMapper;
+  final Transform<OuterEffect, InnerEffect?>? _effectMapper;
 
   /// Converts an [InnerMessage] emitted by [_effectHandler] to an [OuterMessage].
-  final Transform<InnerMessage, OuterMessage?> _messageMapper;
+  final Transform<InnerMessage, OuterMessage?>? _messageMapper;
 
   /// Creates a new [MapEffectHandler].
   ///
@@ -75,11 +75,19 @@ final class MapEffectHandler<InnerEffect, InnerMessage, OuterEffect,
   /// - [messageMapper]: Maps [InnerMessage] → [OuterMessage] for every emitted message.
   MapEffectHandler({
     required EffectHandler<InnerEffect, InnerMessage> effectHandler,
-    required Transform<OuterEffect, InnerEffect?> effectMapper,
-    required Transform<InnerMessage, OuterMessage?> messageMapper,
+    Transform<OuterEffect, InnerEffect?>? effectMapper,
+    Transform<InnerMessage, OuterMessage?>? messageMapper,
   })  : _effectHandler = effectHandler,
         _effectMapper = effectMapper,
         _messageMapper = messageMapper;
+
+  static Outer? _defaultTransformer<Inner, Outer>(Inner value) {
+    if (value is Outer) {
+      return value;
+    }
+
+    return null;
+  }
 
   /// Handles the given [effect] by mapping it to the inner type and delegating
   /// to the wrapped handler.
@@ -98,14 +106,17 @@ final class MapEffectHandler<InnerEffect, InnerMessage, OuterEffect,
     OuterEffect effect,
     MsgEmitter<OuterMessage> emit,
   ) async {
-    final innerEffect = _effectMapper(effect);
+    final innerEffect = _effectMapper?.call(effect) ??
+        _defaultTransformer<OuterEffect, InnerEffect>(effect);
 
     if (innerEffect == null) {
       return;
     }
 
     void innerEmit(InnerMessage message) {
-      final outerMessage = _messageMapper(message);
+      final outerMessage = _messageMapper?.call(message) ??
+          _defaultTransformer<InnerMessage, OuterMessage>(message);
+
       if (outerMessage != null) {
         emit(outerMessage);
       }
@@ -141,8 +152,8 @@ extension MapEffectHandlerExt<InnerEffect, InnerMessage>
   /// - [effectMapper]: Converts an incoming [OuterEffect] to [InnerEffect].
   /// - [messageMapper]: Converts an emitted [InnerMessage] to [OuterMessage].
   EffectHandler<OuterEffect, OuterMessage> map<OuterEffect, OuterMessage>({
-    required Transform<OuterEffect, InnerEffect?> effectMapper,
-    required Transform<InnerMessage, OuterMessage?> messageMapper,
+    Transform<OuterEffect, InnerEffect?>? effectMapper,
+    Transform<InnerMessage, OuterMessage?>? messageMapper,
   }) {
     return MapEffectHandler(
       effectHandler: this,
