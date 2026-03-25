@@ -427,16 +427,16 @@ final feature = Feature<State, Message, Effect>(
 
 ### Composable handler wrappers
 
-The `puer_effect_handlers` package provides **wrapper handlers** that add behavior to existing handlers without modifying them. These wrappers implement the decorator pattern and can be chained via extension methods.
+The `puer_effect_handlers` package provides **transformers** that modify how effect handlers process effects. Similar to how RxDart's transformers work with streams, these transformers wrap existing handlers to add behavior like debouncing, sequential processing, or isolate execution. They can be chained via extension methods.
 
-**Available wrappers:**
+**Available transformers:**
 
-| Wrapper | Purpose | Use case |
+| Transformer | Purpose | Use case |
 |---|---|---|
-| `DebounceEffectHandler` | Delays effect execution, canceling previous invocations if new effects arrive | Debounce search queries, user input |
-| `SequentialEffectHandler` | Queues effects and processes them one at a time | Ensure ordered execution for shared resources |
-| `IsolateEffectHandler` | Offloads effect execution to a separate isolate | Heavy computation without blocking the UI thread |
-| `MapEffectHandler` | Maps effect and message types for reusable generic handlers | Adapt a universal `HttpHandler` to feature-specific types |
+| `DebounceTransformer` | Delays effect execution, canceling previous invocations if new effects arrive | Debounce search queries, user input |
+| `SequentialTransformer` | Queues effects and processes them one at a time | Ensure ordered execution for shared resources |
+| `IsolateTransformer` | Offloads effect execution to a separate isolate | Heavy computation without blocking the UI thread |
+| `MapTransformer` | Maps effect and message types for reusable generic handlers | Adapt a universal `HttpHandler` to feature-specific types |
 
 **Example: debounce + run in another isolate execution**
 
@@ -465,7 +465,7 @@ One of the most powerful patterns in puer is writing **generic, reusable handler
 
 **The problem:** Without adapters, every feature needs its own handler, even if the underlying work (HTTP call, database query, etc.) is identical.
 
-**The solution:** Write the handler once for generic types, then use `MapEffectHandler` to map your feature's types to the generic types.
+**The solution:** Write the handler once for generic types, then use `MapTransformer` to map your feature's types to the generic types.
 
 **Example: reusable HTTP handler**
 

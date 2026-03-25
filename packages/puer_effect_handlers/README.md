@@ -12,15 +12,15 @@
 
 ---
 
-Composable effect handler wrappers for **[puer](https://pub.dev/packages/puer)** — a reactive, functional state management library based on The Elm Architecture.
+Composable effect handler transformers for **[puer](https://pub.dev/packages/puer)** — a reactive, functional state management library based on The Elm Architecture.
 
-This package provides ready-to-use wrappers that add behavior to your effect handlers without modifying them. Chain them together via extension methods to create sophisticated effect-execution policies.
+This package provides ready-to-use transformers that modify how your effect handlers process effects. Similar to how RxDart transformers work with streams, these transformers wrap existing effect handlers to add behavior like debouncing, sequential processing, or isolate execution. Chain them together via extension methods to create sophisticated effect-execution policies.
 
 ---
 
 ## Features
 
-✅ **Composable** — Chain wrappers via extension methods (`.debounced().isolated()`)  
+✅ **Composable** — Chain transformers via extension methods (`.debounced().isolated()`)  
 ✅ **Zero modification** — Wrap existing handlers without changing their code
 
 ---
@@ -61,11 +61,11 @@ final feature = Feature<State, Message, Effect>(
 
 ---
 
-## Core Concept: Composable Wrappers
+## Core Concept: Composable Transformers
 
-The handlers in this package implement the **decorator pattern**. Instead of creating custom handlers with complex execution logic, you write simple handlers and wrap them with behavior modifiers.
+The transformers in this package implement the **decorator pattern**, similar to how RxDart's `StreamTransformer` works. Instead of creating custom handlers with complex execution logic, you write simple handlers and wrap them with transformers that modify their behavior.
 
-Every wrapper is an `EffectHandler` itself, so wrappers compose naturally via extension methods:
+Every transformer is an `EffectHandler` itself, so transformers compose naturally via extension methods:
 
 ```dart
 myHandler
@@ -76,9 +76,9 @@ myHandler
 
 ---
 
-## Available Wrappers
+## Available Transformers
 
-### 1. DebounceEffectHandler
+### 1. DebounceTransformer
 
 **Purpose:** Delays effect execution. If new effects arrive before the delay elapses, previous effects are canceled and only the latest effect is processed.
 
@@ -98,7 +98,7 @@ final debouncedHandler = myHandler.debounced(
 );
 
 // Or using the constructor
-final debouncedHandler = DebounceEffectHandler(
+final debouncedHandler = DebounceTransformer(
   duration: Duration(milliseconds: 300),
   handler: myHandler,
 );
@@ -155,7 +155,7 @@ Only the final search query is executed, saving unnecessary API calls.
 
 ---
 
-### 2. SequentialEffectHandler
+### 2. SequentialTransformer
 
 **Purpose:** Queues effects and processes them one at a time in the order they arrive. Guarantees that no two effects are handled simultaneously.
 
@@ -173,7 +173,7 @@ import 'package:puer_effect_handlers/puer_effect_handlers.dart';
 final sequentialHandler = myHandler.sequential();
 
 // Or using the constructor
-final sequentialHandler = SequentialEffectHandler(
+final sequentialHandler = SequentialTransformer(
   handler: myHandler,
 );
 ```
@@ -224,7 +224,7 @@ Each save completes before the next one starts, preventing file corruption.
 
 ---
 
-### 3. IsolateEffectHandler
+### 3. IsolateTransformer
 
 **Purpose:** Offloads effect execution to a separate isolate, allowing heavy computation to run without blocking the UI thread.
 
@@ -242,7 +242,7 @@ import 'package:puer_effect_handlers/puer_effect_handlers.dart';
 final isolatedHandler = myHandler.isolated();
 
 // Or using the constructor
-final isolatedHandler = IsolateEffectHandler(
+final isolatedHandler = IsolateTransformer(
   effectHandler: myHandler,
 );
 ```
@@ -312,7 +312,7 @@ final effect = ProcessData({
 
 ---
 
-### 4. MapEffectHandler
+### 4. MapTransformer
 
 **Purpose:** Maps effect and message types to enable truly reusable generic handlers. This is the **key to writing handlers once and using them everywhere**.
 
@@ -335,7 +335,7 @@ final mappedHandler = genericHandler.map(
 );
 
 // Or using the constructor
-final mappedHandler = MapEffectHandler(
+final mappedHandler = MapTransformer(
   effectHandler: genericHandler,
   effectMapper: (MyEffect effect) => effect.toGenericEffect(),
   messageMapper: (GenericMessage message) => message.toMyMessage(),
@@ -490,9 +490,9 @@ final productHandler = HttpEffectHandler(httpClient).map(
 
 ---
 
-## Composing Wrappers
+## Composing Transformers
 
-Wrappers are designed to compose naturally. Chain them via extension methods to create sophisticated execution policies:
+Transformers are designed to compose naturally. Chain them via extension methods to create sophisticated execution policies:
 
 ```dart
 myHandler
@@ -502,7 +502,7 @@ myHandler
 ```
 
 **Order matters:**
-- Each extension returns a handler that *wraps* the previous one. The last wrapper you call becomes the outermost at runtime and runs first.
+- Each extension returns a handler that *wraps* the previous one. The last transformer you call becomes the outermost at runtime and runs first.
 - Example: `.debounced().sequential().isolated()` builds `Isolate(Sequential(Debounce(myHandler)))` so effects flow at runtime as: **Isolate → Sequential → Debounce → myHandler**.
 - Conversely, `.sequential().debounced()` builds `Debounce(Sequential(myHandler))`, so runtime order is **Debounce → Sequential → myHandler**.
 
@@ -527,7 +527,7 @@ final feature = Feature<SearchState, SearchMessage, SearchEffect>(
 **What this does:**
 1. Adapts the generic HTTP handler to search feature types
 2. Wraps the adapted handler with `Debounce` (inner) and then `Sequential` (outer)
-3. At runtime the chain becomes `Sequential(Debounce(Adapt(SearchHandler)))`, so effects are processed by **Sequential → Debounce → Adapt → SearchHandler**. In short: the last wrapper called (`.sequential()`) runs first at runtime.
+3. At runtime the chain becomes `Sequential(Debounce(Adapt(SearchHandler)))`, so effects are processed by **Sequential → Debounce → Adapt → SearchHandler**. In short: the last transformer called (`.sequential()`) runs first at runtime.
 
 ---
 
@@ -615,9 +615,9 @@ final class MyFeatureHandler implements EffectHandler<MyEffect, MyMessage> {
 }
 ```
 
-### 2. Order wrappers intentionally
+### 2. Order transformers intentionally
 
-The order of wrappers changes behavior because wrappers are nested. The last wrapper in your chain is the outermost and runs first at runtime. Think through the execution flow:
+The order of transformers changes behavior because transformers are nested. The last transformer in your chain is the outermost and runs first at runtime. Think through the execution flow:
 
 ```dart
 // Chain call order (left-to-right) vs runtime order (outer-to-inner):
@@ -635,8 +635,8 @@ The order of wrappers changes behavior because wrappers are nested. The last wra
 myHandler.debounced(Duration(milliseconds: 300)).sequential()
 
 // ❌ BAD: Verbose and hard to read
-SequentialEffectHandler(
-  handler: DebounceEffectHandler(
+SequentialTransformer(
+  handler: DebounceTransformer(
     duration: Duration(milliseconds: 300),
     handler: myHandler,
   ),
@@ -645,7 +645,7 @@ SequentialEffectHandler(
 
 ### 4. Dispose handlers when needed
 
-Some wrappers implement `Disposable` (e.g., `DebounceEffectHandler`, `SequentialEffectHandler`). If you manually create them, call `dispose()` when done:
+Some transformers implement `Disposable` (e.g., `DebounceTransformer`, `SequentialTransformer`). If you manually create them, call `dispose()` when done:
 
 ```dart
 final handler = myHandler.debounced(Duration(milliseconds: 300));
@@ -655,9 +655,9 @@ await handler.dispose(); // Clean up timers and resources
 
 When using `Feature`, disposal is handled automatically when the feature is disposed.
 
-### 5. Test wrappers independently
+### 5. Test transformers independently
 
-Test the base handler first, then test that wrappers add the expected behavior:
+Test the base handler first, then test that transformers add the expected behavior:
 
 ```dart
 // Test the base handler
@@ -669,7 +669,7 @@ test('SearchHandler returns results', () async {
   );
 });
 
-// Test the debounced wrapper
+// Test the debounced transformer
 test('Debounced handler cancels previous effects', () async {
   final handler = SearchHandler(mockService)
     .debounced(Duration(milliseconds: 100));
@@ -696,7 +696,7 @@ test('Debounced handler cancels previous effects', () async {
 |---------|-----|-------------|
 | [**puer**](https://github.com/Vorkytaka/puer/tree/master/packages/puer) | [![pub package](https://img.shields.io/pub/v/puer.svg)](https://pub.dev/packages/puer) | Core TEA implementation with `Feature`, `update`, and effect handlers. Pure Dart foundation. |
 | [**puer_flutter**](https://github.com/Vorkytaka/puer/tree/master/packages/puer_flutter) | [![pub package](https://img.shields.io/pub/v/puer_flutter.svg)](https://pub.dev/packages/puer_flutter) | Flutter integration: `FeatureProvider`, `FeatureBuilder`, `FeatureListener` widgets. |
-| [**puer_effect_handlers**](https://github.com/Vorkytaka/puer/tree/master/packages/puer_effect_handlers) | [![pub package](https://img.shields.io/pub/v/puer_effect_handlers.svg)](https://pub.dev/packages/puer_effect_handlers) | Composable wrappers for debouncing, sequential execution, and isolate offloading. |
+| [**puer_effect_handlers**](https://github.com/Vorkytaka/puer/tree/master/packages/puer_effect_handlers) | [![pub package](https://img.shields.io/pub/v/puer_effect_handlers.svg)](https://pub.dev/packages/puer_effect_handlers) | Composable transformers for debouncing, sequential execution, and isolate offloading. |
 | [**puer_test**](https://github.com/Vorkytaka/puer/tree/master/packages/puer_test) | [![pub package](https://img.shields.io/pub/v/puer_test.svg)](https://pub.dev/packages/puer_test) | Testing utilities for concise update and handler tests. Add to `dev_dependencies`. |
 | [**puer_time_travel**](https://github.com/Vorkytaka/puer/tree/master/packages/puer_time_travel) | [![pub package](https://img.shields.io/pub/v/puer_time_travel.svg)](https://pub.dev/packages/puer_time_travel) | Time-travel debugging with DevTools extension. Use in debug builds to inspect history. |
 
@@ -711,7 +711,7 @@ test('Debounced handler cancels previous effects', () async {
 
 ## Contributing
 
-This package provides foundational wrappers. If you create useful custom wrappers, consider contributing them via pull request!
+This package provides foundational transformers. If you create useful custom transformers, consider contributing them via pull request!
 
 ---
 

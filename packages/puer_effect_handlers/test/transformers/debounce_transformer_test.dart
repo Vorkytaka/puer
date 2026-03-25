@@ -5,10 +5,10 @@ import 'package:puer_effect_handlers/puer_effect_handlers.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('DebounceEffectHandler', () {
+  group('DebounceTransformer', () {
     test('debounces rapid calls', () async {
       final innerHandler = _CountingHandler();
-      final handler = DebounceEffectHandler(
+      final handler = DebounceTransformer(
         duration: const Duration(milliseconds: 50),
         handler: innerHandler,
       );
@@ -30,7 +30,7 @@ void main() {
 
     test('allows calls after debounce period', () async {
       final innerHandler = _CountingHandler();
-      final handler = DebounceEffectHandler(
+      final handler = DebounceTransformer(
         duration: const Duration(milliseconds: 50),
         handler: innerHandler,
       );
@@ -48,7 +48,7 @@ void main() {
     });
 
     test('disposes properly', () async {
-      final handler = DebounceEffectHandler(
+      final handler = DebounceTransformer(
         duration: const Duration(milliseconds: 50),
         handler: _CountingHandler(),
       );

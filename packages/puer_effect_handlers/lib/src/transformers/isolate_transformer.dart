@@ -7,11 +7,11 @@ import 'package:puer/puer.dart';
 ///
 /// Provides convenient methods to wrap an existing [EffectHandler] with
 /// isolate-based execution capabilities.
-extension IsolateEffectHandlerExt<Effect, Message>
+extension IsolateTransformerExt<Effect, Message>
     on EffectHandler<Effect, Message> {
   /// Wraps this [EffectHandler] to run in a separate isolate.
   ///
-  /// Returns a new [IsolateEffectHandler] that will execute this handler's
+  /// Returns a new [IsolateTransformer] that will execute this handler's
   /// logic in a separate isolate, allowing computationally expensive or
   /// blocking tasks to run without affecting the main thread.
   ///
@@ -21,15 +21,20 @@ extension IsolateEffectHandlerExt<Effect, Message>
   /// ```
   ///
   /// See also:
-  /// - [IsolateEffectHandler] for more details on isolate-based execution.
+  /// - [IsolateTransformer] for more details on isolate-based execution.
   EffectHandler<Effect, Message> isolated() =>
-      IsolateEffectHandler(effectHandler: this);
+      IsolateTransformer(effectHandler: this);
 }
 
-/// An [EffectHandler] implementation that processes effects in a separate isolate.
+/// A transformer that processes effects in a separate isolate.
 ///
-/// This handler offloads effect processing to a separate isolate, allowing
-/// computationally expensive or blocking tasks to run without affecting the main thread.
+/// This transformer wraps an existing [EffectHandler] and modifies where it executes
+/// by offloading effect processing to a separate isolate. This allows computationally
+/// expensive or blocking tasks to run without affecting the main thread.
+///
+/// Similar to how you might use `compute()` in Flutter or isolate spawning for heavy
+/// work, this transformer automatically manages the isolate lifecycle for effect handling.
+///
 /// It is particularly useful for tasks like heavy computations, parsing, or file I/O
 /// that benefit from parallelism provided by isolates.
 ///
@@ -41,10 +46,10 @@ extension IsolateEffectHandlerExt<Effect, Message>
 /// Example:
 /// ```dart
 /// // Using the extension method (recommended)
-/// final handler = myEffectHandler.isolate();
+/// final handler = myEffectHandler.isolated();
 ///
 /// // Or using the constructor directly
-/// final handler = IsolateEffectHandler(
+/// final handler = IsolateTransformer(
 ///   effectHandler: myEffectHandler,
 /// );
 /// ```
@@ -52,12 +57,12 @@ extension IsolateEffectHandlerExt<Effect, Message>
 /// ### Note:
 /// - Each effect is processed in its own isolate, which is spawned and terminated automatically.
 /// - Because of how isolates work, be careful: not all objects can be sent. See [SendPort] docs.
-final class IsolateEffectHandler<Effect, Message>
+final class IsolateTransformer<Effect, Message>
     implements EffectHandler<Effect, Message> {
   /// The underlying effect handler that will be executed in an isolate.
   final EffectHandler<Effect, Message> _effectHandler;
 
-  /// Creates an [IsolateEffectHandler] that wraps the given [effectHandler].
+  /// Creates an [IsolateTransformer] that wraps the given [effectHandler].
   ///
   /// The [effectHandler] will be executed in a separate isolate when effects
   /// are processed, allowing heavy computations to run without blocking the
@@ -65,16 +70,16 @@ final class IsolateEffectHandler<Effect, Message>
   ///
   /// Example:
   /// ```dart
-  /// final handler = IsolateEffectHandler(
+  /// final handler = IsolateTransformer(
   ///   effectHandler: myEffectHandler,
   /// );
   /// ```
   ///
   /// Or using the extension method:
   /// ```dart
-  /// final handler = myEffectHandler.isolate();
+  /// final handler = myEffectHandler.isolated();
   /// ```
-  IsolateEffectHandler({
+  IsolateTransformer({
     required EffectHandler<Effect, Message> effectHandler,
   }) : _effectHandler = effectHandler;
 
@@ -134,7 +139,7 @@ final class IsolateEffectHandler<Effect, Message>
 /// This includes:
 /// - [effect]: The effect to be processed.
 /// - [sendPort]: A [SendPort] for communication with the main isolate.
-/// - [handler]: The handle method from the [IsolateEffectHandler].
+/// - [handler]: The handle method from the [IsolateTransformer].
 class _IsolateParams<Effect, Message> {
   final Effect effect;
   final SendPort sendPort;

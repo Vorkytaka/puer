@@ -19,12 +19,12 @@ Future<void> main() async {
   // Create the base handler
   final handler = ExampleEffectHandler();
 
-  // 1. Use the isolate wrapper
+  // 1. Use the isolate transformer
   final isolatedHandler = handler.isolated();
   print('--- Isolated Handler ---');
   await isolatedHandler(42, (msg) => print(msg));
 
-  // 2. Use the sequential wrapper
+  // 2. Use the sequential transformer
   final sequentialHandler = handler.sequential();
   print('\n--- Sequential Handler ---');
   await Future.wait([
@@ -33,14 +33,14 @@ Future<void> main() async {
     Future(() => sequentialHandler(3, (msg) => print(msg))),
   ]);
 
-  // 3. Use the debounce wrapper
+  // 3. Use the debounce transformer
   final debouncedHandler = handler.debounced(const Duration(milliseconds: 300));
   print('\n--- Debounced Handler ---');
   debouncedHandler(10, (msg) => print(msg));
   debouncedHandler(20, (msg) => print(msg)); // This will cancel the first one.
   await Future.delayed(const Duration(milliseconds: 400));
 
-  // 4. Use the map wrapper
+  // 4. Use the map transformer
   final mappedHandler = handler.map<String, int>(
     effectMapper: (String effect) => int.parse(effect),
     messageMapper: (String message) => message.length,

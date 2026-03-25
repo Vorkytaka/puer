@@ -4,7 +4,7 @@ import 'package:puer/puer.dart';
 
 /// A function type that converts a value of type [From] to a value of type [To].
 ///
-/// Used by [MapEffectHandler] to map effects and messages between inner and
+/// Used by [MapTransformer] to map effects and messages between inner and
 /// outer types.
 ///
 /// When used as a nullable-output transformer
@@ -13,21 +13,23 @@ import 'package:puer/puer.dart';
 /// not forwarded to the outer emitter.
 typedef Transform<From, To> = To Function(From from);
 
-/// An [EffectHandler] implementation that maps an inner handler to a different
-/// effect and message type pair.
+/// A transformer that maps an inner handler to a different effect and message type pair.
 ///
-/// This is a key component in achieving true **The Elm Architecture** style:
-/// it allows you to write **generic, reusable effect handlers** that operate on
-/// simple, universal types (like `HttpRequest`/`HttpResponse`,
-/// `DbQuery`/`DbResult`), and then map them to your feature-specific effect
-/// and message types.
+/// This transformer wraps an existing [EffectHandler] and modifies the types of effects
+/// it accepts and messages it emits. This is a key component in achieving true
+/// **The Elm Architecture** style: it allows you to write **generic, reusable effect
+/// handlers** that operate on simple, universal types (like `HttpRequest`/`HttpResponse`,
+/// `DbQuery`/`DbResult`), and then map them to your feature-specific effect and message types.
+///
+/// Similar to how RxDart's `map` operator transforms stream values, this transformer
+/// transforms the type signature of an effect handler while preserving its behavior.
 ///
 /// Instead of writing a custom handler for every feature, you can:
 /// 1. Create a generic handler once (e.g., `HttpEffectHandler` that handles
 ///    HTTP requests).
-/// 2. Map it to each feature's domain types using [MapEffectHandler].
+/// 2. Map it to each feature's domain types using [MapTransformer].
 ///
-/// [MapEffectHandler] wraps the inner handler and performs two mappings:
+/// [MapTransformer] wraps the inner handler and performs two mappings:
 /// - **Effect mapping**: converts [OuterEffect] → [InnerEffect] before
 ///   delegating.
 /// - **Message mapping**: converts [InnerMessage] → [OuterMessage] before
@@ -81,9 +83,9 @@ typedef Transform<From, To> = To Function(From from);
 /// ```
 ///
 /// See also:
-/// - [MapEffectHandlerExt] for the fluent `.map(...)` extension method.
-final class MapEffectHandler<InnerEffect, InnerMessage, OuterEffect,
-    OuterMessage> implements EffectHandler<OuterEffect, OuterMessage> {
+/// - [MapTransformerExt] for the fluent `.map(...)` extension method.
+final class MapTransformer<InnerEffect, InnerMessage, OuterEffect, OuterMessage>
+    implements EffectHandler<OuterEffect, OuterMessage> {
   /// The underlying effect handler that processes effects of type [InnerEffect]
   /// and emits messages of type [InnerMessage].
   final EffectHandler<InnerEffect, InnerMessage> _effectHandler;
@@ -100,7 +102,7 @@ final class MapEffectHandler<InnerEffect, InnerMessage, OuterEffect,
   /// When `null`, [_defaultTransformer] is used instead.
   final Transform<InnerMessage, OuterMessage?>? _messageMapper;
 
-  /// Creates a new [MapEffectHandler].
+  /// Creates a new [MapTransformer].
   ///
   /// - [effectHandler]: The inner handler that processes [InnerEffect] values.
   /// - [effectMapper]: Optional. Maps [OuterEffect] → [InnerEffect?] before
@@ -111,7 +113,7 @@ final class MapEffectHandler<InnerEffect, InnerMessage, OuterEffect,
   ///   every emitted message. When `null`, a direct type cast is attempted;
   ///   messages that fail the cast are silently dropped. A mapper that returns
   ///   `null` has the same drop behaviour.
-  MapEffectHandler({
+  MapTransformer({
     required EffectHandler<InnerEffect, InnerMessage> effectHandler,
     Transform<OuterEffect, InnerEffect?>? effectMapper,
     Transform<InnerMessage, OuterMessage?>? messageMapper,
@@ -187,7 +189,7 @@ final class MapEffectHandler<InnerEffect, InnerMessage, OuterEffect,
 /// Extension methods for [EffectHandler] to map it to a different type pair.
 ///
 /// Provides a fluent way to wrap an existing handler without constructing
-/// [MapEffectHandler] directly. This is essential for writing reusable,
+/// [MapTransformer] directly. This is essential for writing reusable,
 /// generic effect handlers in true **The Elm Architecture** style.
 ///
 /// ### Example with a generic HTTP handler
@@ -206,11 +208,11 @@ final class MapEffectHandler<InnerEffect, InnerMessage, OuterEffect,
 /// // No explicit mappers — default cast is used for both directions.
 /// final mapped = innerHandler.map<MyEffect, MyMessage>();
 /// ```
-extension MapEffectHandlerExt<InnerEffect, InnerMessage>
+extension MapTransformerExt<InnerEffect, InnerMessage>
     on EffectHandler<InnerEffect, InnerMessage> {
   /// Wraps this handler with type-mapping transformers for effects and messages.
   ///
-  /// Returns a new [MapEffectHandler] that maps [OuterEffect] → [InnerEffect]
+  /// Returns a new [MapTransformer] that maps [OuterEffect] → [InnerEffect]
   /// before delegating and [InnerMessage] → [OuterMessage] before emitting.
   ///
   /// - [effectMapper]: Optional. Converts an incoming [OuterEffect] to
@@ -223,7 +225,7 @@ extension MapEffectHandlerExt<InnerEffect, InnerMessage>
     Transform<OuterEffect, InnerEffect?>? effectMapper,
     Transform<InnerMessage, OuterMessage?>? messageMapper,
   }) {
-    return MapEffectHandler(
+    return MapTransformer(
       effectHandler: this,
       effectMapper: effectMapper,
       messageMapper: messageMapper,
