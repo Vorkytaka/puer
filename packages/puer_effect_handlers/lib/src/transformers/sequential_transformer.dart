@@ -3,21 +3,28 @@ import 'dart:collection';
 
 import 'package:puer/puer.dart';
 
-/// An [EffectHandler] implementation that ensures effects are handled sequentially.
+/// A transformer that ensures effects are handled sequentially.
 ///
-/// This handler processes effects one at a time in the order they are received,
-/// queuing subsequent effects until the current one has completed. This guarantees
-/// that no two effects are handled simultaneously, which is particularly useful
-/// when handling effects that depend on shared resources or when maintaining strict
-/// processing order is required.
+/// This transformer wraps an existing [EffectHandler] and modifies how it processes
+/// effects by queuing them and processing one at a time in the order they are received.
+/// This guarantees that no two effects are handled simultaneously.
+///
+/// Similar to how RxDart's concatMap operator works with streams, this transformer
+/// ensures sequential processing of effects, which is particularly useful when handling
+/// effects that depend on shared resources or when maintaining strict processing order
+/// is required.
 ///
 /// ### Example:
 /// ```dart
-/// final sequentialHandler = SequentialEffectHandler(
+/// // Using the extension method (recommended)
+/// final handler = myEffectHandler.sequential();
+///
+/// // Or using the constructor directly
+/// final sequentialHandler = SequentialTransformer(
 ///   handler: myEffectHandler,
 /// );
 /// ```
-final class SequentialEffectHandler<Effect, Message>
+final class SequentialTransformer<Effect, Message>
     implements EffectHandler<Effect, Message>, Disposable {
   /// The wrapped effect handler that processes individual effects.
   final EffectHandler<Effect, Message> _handler;
@@ -31,10 +38,10 @@ final class SequentialEffectHandler<Effect, Message>
   /// Tracks whether the handler is currently processing an effect.
   bool _isProcessing = false;
 
-  /// Creates a new [SequentialEffectHandler].
+  /// Creates a new [SequentialTransformer].
   ///
   /// - [handler]: The effect handler that will process the effects sequentially.
-  SequentialEffectHandler({
+  SequentialTransformer({
     required EffectHandler<Effect, Message> handler,
   }) : _handler = handler;
 
@@ -79,18 +86,18 @@ final class SequentialEffectHandler<Effect, Message>
 /// Extension methods for [EffectHandler] to add sequential processing.
 ///
 /// This extension provides a convenient way to wrap an effect handler
-/// with sequential processing logic without manually creating a [SequentialEffectHandler].
+/// with sequential processing logic without manually creating a [SequentialTransformer].
 ///
 /// Example:
 /// ```dart
 /// final handler = MyEffectHandler().sequential();
 /// ```
-extension SequentialEffectHandlerExt<Effect, Message>
+extension SequentialTransformerExt<Effect, Message>
     on EffectHandler<Effect, Message> {
   /// Wraps this handler to process effects sequentially.
   ///
-  /// Returns a new [SequentialEffectHandler] that ensures effects are processed
+  /// Returns a new [SequentialTransformer] that ensures effects are processed
   /// one at a time in the order they are received.
   EffectHandler<Effect, Message> sequential() =>
-      SequentialEffectHandler(handler: this);
+      SequentialTransformer(handler: this);
 }

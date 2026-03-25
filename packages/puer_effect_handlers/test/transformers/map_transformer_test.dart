@@ -5,14 +5,14 @@ import 'package:puer_effect_handlers/puer_effect_handlers.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('MapEffectHandler', () {
+  group('MapTransformer', () {
     test('maps effect before delegating to inner handler', () {
       String? receivedInnerEffect;
       final inner = _CapturingHandler(onCall: (effect, emit) {
         receivedInnerEffect = effect;
       });
 
-      final handler = MapEffectHandler<String, String, String, String>(
+      final handler = MapTransformer<String, String, String, String>(
         effectHandler: inner,
         effectMapper: (String outer) => 'mapped:$outer',
         messageMapper: (String inner) => inner,
@@ -29,7 +29,7 @@ void main() {
       });
 
       final emitted = <String>[];
-      final handler = MapEffectHandler(
+      final handler = MapTransformer(
         effectHandler: inner,
         effectMapper: (String outer) => outer,
         messageMapper: (String inner) => 'wrapped:$inner',
@@ -48,7 +48,7 @@ void main() {
       });
 
       final emitted = <String>[];
-      final handler = MapEffectHandler(
+      final handler = MapTransformer(
         effectHandler: inner,
         effectMapper: (String outer) => outer,
         messageMapper: (String inner) => inner.toUpperCase(),
@@ -64,7 +64,7 @@ void main() {
         emit('msg');
       });
 
-      final handler = MapEffectHandler(
+      final handler = MapTransformer(
         effectHandler: inner,
         effectMapper: (String outer) => outer,
         messageMapper: (String inner) => inner,
@@ -82,7 +82,7 @@ void main() {
       });
 
       final emitted = <String>[];
-      final handler = MapEffectHandler(
+      final handler = MapTransformer(
         effectHandler: inner,
         effectMapper: (String outer) => outer,
         messageMapper: (String inner) => 'async:$inner',
@@ -101,7 +101,7 @@ void main() {
       });
 
       final emitted = <String>[];
-      final handler = MapEffectHandler(
+      final handler = MapTransformer(
         effectHandler: inner,
         effectMapper: (String outer) => outer,
         messageMapper: (String inner) => inner,
@@ -121,7 +121,7 @@ void main() {
 
       final emitted = <String>[];
       var callCount = 0;
-      final handler = MapEffectHandler(
+      final handler = MapTransformer(
         effectHandler: inner,
         effectMapper: (String outer) => 'e${++callCount}:$outer',
         messageMapper: (String inner) => 'm$callCount:$inner',
@@ -140,7 +140,7 @@ void main() {
       });
 
       final emitted = <String>[];
-      final handler = MapEffectHandler<int, int, String, String>(
+      final handler = MapTransformer<int, int, String, String>(
         effectHandler: inner,
         effectMapper: (String outer) => int.parse(outer),
         messageMapper: (int inner) => 'result:$inner',
@@ -157,7 +157,7 @@ void main() {
       });
 
       final emitted = <String>[];
-      final handler = MapEffectHandler(
+      final handler = MapTransformer(
         effectHandler: inner,
         effectMapper: (String outer) => outer,
         messageMapper: (String inner) => inner,
@@ -177,7 +177,7 @@ void main() {
         });
 
         // No effectMapper: OuterEffect == String == InnerEffect, cast succeeds.
-        final handler = MapEffectHandler<String, String, String, String>(
+        final handler = MapTransformer<String, String, String, String>(
           effectHandler: inner,
           messageMapper: (String inner) => inner,
         );
@@ -195,7 +195,7 @@ void main() {
 
         final emitted = <String>[];
         // No messageMapper: InnerMessage == String == OuterMessage, cast succeeds.
-        final handler = MapEffectHandler<String, String, String, String>(
+        final handler = MapTransformer<String, String, String, String>(
           effectHandler: inner,
           effectMapper: (String outer) => outer,
         );
@@ -212,7 +212,7 @@ void main() {
 
         final emitted = <String>[];
         // All types are String — no mappers needed.
-        final handler = MapEffectHandler<String, String, String, String>(
+        final handler = MapTransformer<String, String, String, String>(
           effectHandler: inner,
         );
 
@@ -227,7 +227,7 @@ void main() {
           innerCalled = true;
         });
 
-        final handler = MapEffectHandler(
+        final handler = MapTransformer(
           effectHandler: inner,
           effectMapper: (String outer) => null,
           messageMapper: (String inner) => inner,
@@ -244,7 +244,7 @@ void main() {
         });
 
         final emitted = <String>[];
-        final handler = MapEffectHandler<String, String, String, String>(
+        final handler = MapTransformer<String, String, String, String>(
           effectHandler: inner,
           effectMapper: (String outer) => outer,
           messageMapper: (String inner) => null,
@@ -263,7 +263,7 @@ void main() {
         });
 
         // OuterEffect is String, InnerEffect is int — cast will fail at runtime.
-        final handler = MapEffectHandler<int, int, String, String>(
+        final handler = MapTransformer<int, int, String, String>(
           effectHandler: inner,
           messageMapper: (int inner) => '$inner',
         );
@@ -282,7 +282,7 @@ void main() {
 
         final emitted = <String>[];
         // InnerMessage is int, OuterMessage is String — cast will fail at runtime.
-        final handler = MapEffectHandler<int, int, int, String>(
+        final handler = MapTransformer<int, int, int, String>(
           effectHandler: inner,
           effectMapper: (int outer) => outer,
         );
@@ -296,7 +296,7 @@ void main() {
           () {
         final inner = _CapturingHandler(onCall: (effect, emit) {});
 
-        final handler = MapEffectHandler(
+        final handler = MapTransformer(
           effectHandler: inner,
           effectMapper: (String outer) => null,
           messageMapper: (String inner) => inner,
@@ -309,8 +309,8 @@ void main() {
     });
   });
 
-  group('MapEffectHandlerExt', () {
-    test('.map() creates a MapEffectHandler with correct mappers', () {
+  group('MapTransformerExt', () {
+    test('.map() creates a MapTransformer with correct mappers', () {
       final inner = _CapturingHandler(onCall: (effect, emit) {
         emit('inner_response');
       });

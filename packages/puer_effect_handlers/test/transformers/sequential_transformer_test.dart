@@ -5,9 +5,9 @@ import 'package:puer_effect_handlers/puer_effect_handlers.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('SequentialEffectHandler', () {
+  group('SequentialTransformer', () {
     test('processes effects sequentially', () async {
-      final handler = SequentialEffectHandler(
+      final handler = SequentialTransformer(
         handler: _DelayedHandler(),
       );
 
@@ -40,7 +40,7 @@ void main() {
 
     test('handles async effects in order', () async {
       var counter = 0;
-      final handler = SequentialEffectHandler(
+      final handler = SequentialTransformer(
         handler: _AsyncCounterHandler(() => counter++),
       );
 
@@ -56,7 +56,7 @@ void main() {
     });
 
     test('disposes and clears queue', () async {
-      final handler = SequentialEffectHandler(
+      final handler = SequentialTransformer(
         handler: _DelayedHandler(),
       );
 

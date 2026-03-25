@@ -2,11 +2,15 @@ import 'dart:async';
 
 import 'package:puer/puer.dart';
 
-/// An [EffectHandler] implementation that adds a debounce mechanism to effect handling.
+/// A transformer that adds a debounce mechanism to effect handling.
 ///
-/// Debouncing ensures that effect handling is postponed until a specified [duration]
-/// has elapsed since the last effect invocation. If new effects are scheduled during
-/// the delay, the previous effect is canceled, and only the most recent effect is processed.
+/// This transformer wraps an existing [EffectHandler] and modifies how it processes
+/// effects by postponing execution until a specified [duration] has elapsed since
+/// the last effect invocation. If new effects are scheduled during the delay, the
+/// previous effect is canceled, and only the most recent effect is processed.
+///
+/// Similar to how RxDart's debounce operators work with streams, this transformer
+/// modifies the timing behavior of the underlying effect handler.
 ///
 /// This is particularly useful in scenarios where effects are triggered in rapid succession,
 /// such as handling user input or network requests, and you want to limit the frequency
@@ -14,12 +18,16 @@ import 'package:puer/puer.dart';
 ///
 /// ### Example:
 /// ```dart
-/// final debounceHandler = DebounceEffectHandler(
+/// // Using the extension method (recommended)
+/// final handler = myEffectHandler.debounced(Duration(milliseconds: 300));
+///
+/// // Or using the constructor directly
+/// final debounceHandler = DebounceTransformer(
 ///   duration: const Duration(milliseconds: 300),
 ///   handler: myEffectHandler,
 /// );
 /// ```
-final class DebounceEffectHandler<Effect, Message>
+final class DebounceTransformer<Effect, Message>
     implements EffectHandler<Effect, Message>, Disposable {
   /// The duration to wait before handling the effect.
   ///
@@ -35,12 +43,12 @@ final class DebounceEffectHandler<Effect, Message>
   /// The timer used to manage the debounce delay.
   Timer? _timer;
 
-  /// Creates a new [DebounceEffectHandler].
+  /// Creates a new [DebounceTransformer].
   ///
   /// - [duration]: The debounce interval. Effects scheduled within this time frame
   ///   cancel previously scheduled effects.
   /// - [handler]: The actual effect handler to invoke after the debounce delay.
-  DebounceEffectHandler({
+  DebounceTransformer({
     required this.duration,
     required EffectHandler<Effect, Message> handler,
   }) : _handler = handler;
@@ -83,22 +91,22 @@ final class DebounceEffectHandler<Effect, Message>
 /// Extension methods for [EffectHandler] to add debouncing functionality.
 ///
 /// This extension provides a convenient way to wrap an effect handler
-/// with debounce logic without manually creating a [DebounceEffectHandler].
+/// with debounce logic without manually creating a [DebounceTransformer].
 ///
 /// Example:
 /// ```dart
 /// final handler = MyEffectHandler().debounced(Duration(milliseconds: 300));
 /// ```
-extension DebounceEffectHandlerExt<Effect, Message>
+extension DebounceTransformerExt<Effect, Message>
     on EffectHandler<Effect, Message> {
   /// Wraps this handler with a debounce mechanism.
   ///
-  /// Returns a new [DebounceEffectHandler] that will delay processing effects
+  /// Returns a new [DebounceTransformer] that will delay processing effects
   /// until [duration] has elapsed since the last effect invocation.
   ///
   /// - [duration]: The debounce interval.
   EffectHandler<Effect, Message> debounced(Duration duration) =>
-      DebounceEffectHandler(
+      DebounceTransformer(
         duration: duration,
         handler: this,
       );
