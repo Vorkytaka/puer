@@ -85,7 +85,7 @@ Unlike external time-travel tools that require custom instrumentation, browser e
 ```yaml
 # pubspec.yaml
 dependencies:
-  puer_time_travel: ^1.0.0-alpha.2
+  puer_time_travel: ^1.0.0
 ```
 
 **Note:** `puer_time_travel` re-exports the core `puer` package, so you only need this single dependency.
