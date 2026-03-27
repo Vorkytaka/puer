@@ -1,5 +1,14 @@
 import 'transition.dart';
 
+/// A read-only view of a `Feature`.
+///
+/// Exposes all observable streams and the current state without allowing
+/// callers to send messages, initialise, or dispose the feature.
+///
+/// Implemented by `Feature` itself so any `Feature` can be used where a
+/// [ReadOnlyFeature] is expected. Use [ReadOnlyFeatureWrapper] (or the
+/// [ReadOnlyFeatureWrapperExt.asReadOnly] extension) to wrap a `Feature` and
+/// hand it to a consumer that should only read state.
 abstract interface class ReadOnlyFeature<State, Message, Effect> {
   /// Initial effects executed when the feature is created.
   ///
@@ -62,7 +71,7 @@ abstract interface class ReadOnlyFeature<State, Message, Effect> {
 ///
 /// This wrapper implements the [ReadOnlyFeature] interface and delegates all
 /// read-only operations to the underlying feature, while preventing access to
-/// mutating methods like `accept`, `init`, and `dispose`.
+/// mutating methods like `add`, `init`, and `dispose`.
 ///
 /// ### Purpose
 ///
@@ -163,7 +172,7 @@ extension ReadOnlyFeatureWrapperExt<State, Message, Effect>
   /// Returns a read-only wrapper of this feature.
   ///
   /// The returned wrapper delegates all read-only operations to this feature
-  /// while preventing access to mutating methods like `accept`, `init`, and `dispose`.
+  /// while preventing access to mutating methods like `add`, `init`, and `dispose`.
   ReadOnlyFeature<State, Message, Effect> get asReadOnly =>
       ReadOnlyFeatureWrapper(feature: this);
 }
