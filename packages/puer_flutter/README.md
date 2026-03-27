@@ -30,7 +30,7 @@ Add `puer_flutter` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  puer_flutter: ^1.0.0-alpha.1
+  puer_flutter: ^1.0.0
 ```
 
 **Note:** `puer_flutter` re-exports the core `puer` package, so you only need this single dependency.

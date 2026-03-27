@@ -1,4 +1,4 @@
-## NEXT
+## 1.0.0
 
 - **Breaking:** Rename `Feature.accept` to `Feature.add` (#59)
 - Fix: Avoid initial FeatureListener emission causing layout errors (#42)

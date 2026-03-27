@@ -1,8 +1,8 @@
 name: puer_flutter
 description: A bunch of widgets that helps you to easily works with puer with Flutter.
-version: 1.0.0-alpha.1
+version: 1.0.0
 
-repository: https://github.com/Vorkytaka/puer
+repository: https://github.com/Vorkytaka/puer/tree/master/packages/puer_flutter
 issue_tracker: https://github.com/Vorkytaka/puer/issues
 homepage: https://github.com/Vorkytaka/puer
 topics:
@@ -20,7 +20,7 @@ dependencies:
     sdk: flutter
   meta: ^1.0.0
   provider: ^6.0.0
-  puer: ^1.0.0-alpha.1
+  puer: ^1.0.0
 
 dev_dependencies:
   flutter_test:
