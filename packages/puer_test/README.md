@@ -28,7 +28,7 @@ Testing utilities for [puer](https://pub.dev/packages/puer) — concise, asserti
 
 ```yaml
 dev_dependencies:
-  puer_test: ^1.0.0-alpha.1
+  puer_test: ^1.0.0
 ```
 
 ---

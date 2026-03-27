@@ -1,8 +1,8 @@
 name: puer_test
 description: A package to make feature testing in puer easier and more enjoyable.
-version: 1.0.0-alpha.1
+version: 1.0.0
 
-repository: https://github.com/Vorkytaka/puer
+repository: https://github.com/Vorkytaka/puer/tree/master/packages/puer_test
 issue_tracker: https://github.com/Vorkytaka/puer/issues
 homepage: https://github.com/Vorkytaka/puer
 topics:
@@ -18,7 +18,7 @@ resolution: workspace
 
 dependencies:
   meta: ^1.0.0
-  puer: ^1.0.0-alpha.1
+  puer: ^1.0.0
   test: ^1.16.0
 
 dev_dependencies:
