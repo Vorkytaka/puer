@@ -1,8 +1,8 @@
 name: puer_effect_handlers
 description: Ready-to-use effect handlers for Puer state management library.
-version: 1.0.0-alpha.1
+version: 1.0.0
 
-repository: https://github.com/Vorkytaka/puer
+repository: https://github.com/Vorkytaka/puer/tree/master/packages/puer_effect_handlers
 issue_tracker: https://github.com/Vorkytaka/puer/issues
 homepage: https://github.com/Vorkytaka/puer
 
@@ -12,7 +12,7 @@ resolution: workspace
 
 dependencies:
   meta: ^1.0.0
-  puer: ^1.0.0-alpha.1
+  puer: ^1.0.0
 
 dev_dependencies:
   puer_lints: ^1.0.0

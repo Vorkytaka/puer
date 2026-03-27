@@ -31,8 +31,8 @@ Add `puer_effect_handlers` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  puer: ^1.0.0-alpha.1
-  puer_effect_handlers: ^1.0.0-alpha.1
+  puer: ^1.0.0
+  puer_effect_handlers: ^1.0.0
 ```
 
 ---
